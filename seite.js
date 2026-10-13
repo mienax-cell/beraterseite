@@ -162,33 +162,30 @@
   });
 
   // ============================================================== Inhalte
-  const zahlenliste = $('#zahlenliste');
-  I.zahlen.forEach((z, i) => {
-    const el = neu('article', 'zahl zeig'); el.style.setProperty('--i', i);
-    el.append(neu('strong', '', z.wert), neu('h3', '', z.titel), neu('p', '', z.text), neu('small', '', 'Quelle: ' + z.quelle));
-    zahlenliste.append(el);
-  });
   const karten = $('#karten');
-  I.faeden.forEach((f, i) => {
-    const el = neu('article', 'karte zeig'); el.style.setProperty('--i', i % 3);
-    el.append(neu('span', 'faden'), neu('span', 'nr', '0' + (i + 1)), neu('h3', '', f.name), neu('p', '', f.text), neu('p', 'frage', '„' + f.frage + '“'));
+  I.themen.forEach((t, i) => {
+    const el = neu('article', 'karte zeig'); el.style.setProperty('--i', i);
+    el.append(neu('span', 'faden'), neu('span', 'buchstabe', t.buchstabe), neu('h3', '', t.name), neu('p', 'frage', t.frage));
     karten.append(el);
   });
   const wahl = $('#wahl');
-  I.faeden.map((f) => f.name).concat(['Weiß ich noch nicht']).forEach((name) => {
+  I.themen.map((t) => t.name).concat(['Weiß ich noch nicht']).forEach((name) => {
     const l = neu('label'), c = neu('input'); c.type = 'checkbox'; c.name = 'thema'; c.value = name;
     l.append(c, neu('span', '', name)); wahl.append(l);
   });
   const themenzeile = $('#themenzeile');
-  I.faeden.forEach((f) => themenzeile.append(neu('li', '', f.name)));
+  I.themen.forEach((t) => themenzeile.append(neu('li', '', t.buchstabe + ' · ' + t.name)));
+  // Welches der beiden Beispiele läuft gerade? B = Animation über die ganze Seite
+  const varB = document.documentElement.classList.contains('var-b');
+  $(varB ? '#beispielB' : '#beispielA').classList.add('an');
   $('#jahr').textContent = new Date().getFullYear();
   setzeAngaben();
 
   // =============================================================== Bühne
   const reise = $('#reise'), buehne = $('#buehne'), kapitel = $$('.kapitel'), striche = $$('#leiste li');
   const glut = $('#kernglut'), markenBox = $('#marken'), kopfzeile = $('#kopfzeile');
-  const marken = I.faeden.map((f, i) => {
-    const el = neu('div', 'marke'); el.append(neu('b', '', '0' + (i + 1)), document.createTextNode(f.name));
+  const marken = I.themen.map((t) => {
+    const el = neu('div', 'marke'); el.append(neu('b', '', t.buchstabe), document.createTextNode(t.name));
     markenBox.append(el); return el;
   });
   let markenMass = marken.map(() => [140, 24]);
@@ -198,13 +195,17 @@
   // Der Rest der Fläche ist der Rahmen für das 3D-Motiv. Den bekommt die Szene mitgeteilt,
   // damit Kopf, Fäden, Strang und Blüte nie über dem Text liegen.
   function ordneBuehne() {
-    const B = buehne.clientWidth, H = buehne.clientHeight;
+    const B = varB ? window.innerWidth : buehne.clientWidth, H = varB ? window.innerHeight : buehne.clientHeight;
     if (!B || !H) return;
-    const breit = B >= 620 && B / H >= 1.15;       // quer genug für Text neben dem Motiv
+    const breit = varB ? (B >= 900 && B / H >= 1.15) : (B >= 620 && B / H >= 1.15);       // quer genug für Text neben dem Motiv
     buehne.dataset.modus = breit ? 'breit' : 'hoch';
     const oben = Math.round((kopfzeile.offsetHeight || 64) + 4);
     let r;
-    if (breit) {
+    if (varB) {
+      // Beispiel B: Der Rahmen steht fest im Fenster. Breit rechts neben der Inhaltsspalte, schmal im oberen Teil.
+      const spalte = $('.abschnitt > *') ? $('.abschnitt > *').getBoundingClientRect().right : B * 0.5;
+      r = breit ? { x: spalte + 40, y: oben, b: B - spalte - 64, h: H - oben - 30 } : { x: 14, y: oben, b: B - 28, h: H * 0.56 - oben };
+    } else if (breit) {
       const rechts = Math.max(...kapitel.map((k) => k.offsetLeft + k.offsetWidth));
       const luft = clamp(B * 0.035, 28, 64);
       r = { x: rechts + luft, y: oben, b: B - rechts - luft * 1.7, h: H - oben - 30 };
@@ -213,15 +214,29 @@
       r = { x: 14, y: oben, b: B - 28, h: textOben - oben - 16 };
     }
     // Schwebende Beschriftungen an den Fadenspitzen brauchen Platz. Fehlt er, stehen die sechs Themen im Text.
-    const schweben = breit && r.b >= 620;
+    const schweben = breit && r.b >= (varB ? 520 : 620);
     buehne.dataset.marken = schweben ? 'an' : 'aus';
     S.rahmen = r; S.modus = breit ? 'breit' : 'hoch'; S.marken = schweben;
-    buehne.style.setProperty('--mx', (r.x + r.b / 2).toFixed(0) + 'px');
-    buehne.style.setProperty('--my', (r.y + r.h / 2).toFixed(0) + 'px');
+    const flaeche = varB ? document.documentElement : buehne;
+    flaeche.style.setProperty('--mx', (r.x + r.b / 2).toFixed(0) + 'px');
+    flaeche.style.setProperty('--my', (r.y + r.h / 2).toFixed(0) + 'px');
     markenMass = marken.map((el) => [el.offsetWidth || 140, el.offsetHeight || 24]);
   }
 
+  // Beispiel B: Jeder Abschnitt gehört zu einem Stand der Geschichte. Dazwischen wird gleitend überblendet.
+  const STATIONEN = [['#reise', 0.0], ['#weg', 0.21], ['#themen', 0.45], ['#ueber', 0.69], ['#fragen', 0.84], ['#kontakt', 1.0]]
+    .map(([q, p]) => [$(q), p]).filter((s) => s[0]);
   function fortschritt() {
+    if (varB) {
+      const mitteFenster = window.innerHeight * 0.5;
+      const orte = STATIONEN.map(([el, p]) => { const r = el.getBoundingClientRect(); return [r.top + r.height / 2, p]; });
+      if (mitteFenster <= orte[0][0]) return orte[0][1];
+      for (let i = 0; i < orte.length - 1; i++) {
+        const [a, pa] = orte[i], [b, pb] = orte[i + 1];
+        if (mitteFenster < b) return pa + (pb - pa) * weich(a, b, mitteFenster);
+      }
+      return 1;
+    }
     const r = reise.getBoundingClientRect(), lauf = r.height - window.innerHeight;
     return lauf > 0 ? clamp(-r.top / lauf) : 0;
   }
@@ -238,7 +253,7 @@
     const p = S.ziel, breiteNeu = window.innerWidth !== alteBreite;
     alteBreite = window.innerWidth;
     ordneBuehne();
-    if (breiteNeu && p > 0 && p < 1) {
+    if (!varB && breiteNeu && p > 0 && p < 1) {
       const lauf = reise.offsetHeight - window.innerHeight;
       window.scrollTo({ top: reise.offsetTop + lauf * p, behavior: 'instant' });
     }
@@ -250,6 +265,7 @@
 
   let letzterIndex = -1;
   function schalteKapitel(p) {
+    if (varB) return;                    // in Beispiel B gibt es keine eigenen Bühnen-Kapitel
     kapitel.forEach((el) => {
       const von = +el.dataset.von, bis = +el.dataset.bis;
       const rein = von < 0 ? 1 : weich(von, von + 0.03, p), raus = bis > 1 ? 0 : weich(bis - 0.03, bis, p);
@@ -266,9 +282,10 @@
     S.beiBild = (z) => {
       schalteKapitel(z.p);
       const farbe = (c) => 'rgb(' + c.map((v) => Math.round(v)).join(',') + ')';
-      buehne.style.setProperty('--hell', farbe(z.grund.hell));
-      buehne.style.setProperty('--tief', farbe(z.grund.tief));
-      const B = buehne.clientWidth, H = buehne.clientHeight;
+      const flaeche = varB ? document.documentElement : buehne;
+      flaeche.style.setProperty('--hell', farbe(z.grund.hell));
+      flaeche.style.setProperty('--tief', farbe(z.grund.tief));
+      const B = varB ? window.innerWidth : buehne.clientWidth, H = varB ? window.innerHeight : buehne.clientHeight;
 
       // Beschriftungen: rechts neben der Fadenspitze, untereinander geordnet, nie übereinander
       if (!z.marken.length) marken.forEach((el) => { if (el.style.opacity !== '0') el.style.opacity = '0'; });
@@ -295,122 +312,6 @@
     };
   }
   schalteKapitel(fortschritt());      // der Text wartet nicht auf die Grafik
-
-  // =============================================================== Rechner
-  const euro = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
-  const R = { rate: $('#rRate'), jahre: $('#rJahre'), rendite: $('#rRendite'), kaufkraft: $('#rKaufkraft') };
-  const kurve = $('#kurve'), kx = kurve.getContext('2d');
-  const INFLATION = 0.02;
-  let zeigt = null, zielwerte = null, laeuft = false;
-
-  // Guthaben nach m Monaten bei Einzahlung am Monatsende
-  function guthaben(rate, renditeJahr, monate) {
-    const i = Math.pow(1 + renditeJahr, 1 / 12) - 1;
-    return i === 0 ? rate * monate : rate * (Math.pow(1 + i, monate) - 1) / i;
-  }
-  const eingestellt = () => ({ rate: +R.rate.value, jahre: +R.jahre.value, rendite: +R.rendite.value / 100, real: R.kaufkraft.checked });
-  function rechne(e) {
-    const { rate, jahre, rendite, real } = e;
-    const wert = (m, start = 0) => {
-      const v = m <= start ? 0 : guthaben(rate, rendite, m - start);
-      return real ? v / Math.pow(1 + INFLATION, m / 12) : v;
-    };
-    const ein = (m) => real ? rate * m / Math.pow(1 + INFLATION, m / 12) : rate * m;
-    const M = jahre * 12;
-    return { rate, jahre, rendite, real, ende: wert(M), ein: ein(M), spaet: jahre > 5 ? wert(M, 60) : null, wert, einF: ein, M };
-  }
-
-  function zeichne(w) {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2), B = kurve.clientWidth, H = kurve.clientHeight;
-    if (kurve.width !== Math.round(B * dpr)) { kurve.width = Math.round(B * dpr); kurve.height = Math.round(H * dpr); }
-    kx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    kx.clearRect(0, 0, B, H);
-    const l = 2, r = B - 26, o = 26, u = H - 30, max = Math.max(w.ende, w.ein, 1) * 1.04;
-    const X = (m) => l + (r - l) * m / w.M, Y = (v) => u - (u - o) * v / max;
-    const N = 90, pfad = (f, start = 0) => { kx.beginPath(); for (let i = 0; i <= N; i++) { const m = start + (w.M - start) * i / N; i ? kx.lineTo(X(m), Y(f(m))) : kx.moveTo(X(m), Y(f(m))); } };
-
-    // Fläche der Einzahlungen
-    pfad(w.einF); kx.lineTo(X(w.M), u); kx.lineTo(l, u); kx.closePath();
-    kx.fillStyle = 'rgba(255,253,251,.07)'; kx.fill();
-    pfad(w.einF); kx.setLineDash([3, 5]); kx.strokeStyle = 'rgba(255,253,251,.5)'; kx.lineWidth = 1; kx.stroke(); kx.setLineDash([]);
-
-    // später angefangen
-    if (w.spaet != null) {
-      pfad((m) => w.wert(m, 60), 60); kx.setLineDash([1, 5]); kx.lineCap = 'round';
-      kx.strokeStyle = 'rgba(240,138,44,.75)'; kx.lineWidth = 1.4; kx.stroke(); kx.setLineDash([]); kx.lineCap = 'butt';
-    }
-
-    // das Guthaben als Bündel feiner Fäden, die an der Spitze zusammenlaufen
-    for (let k = 0; k < 9; k++) {
-      kx.beginPath();
-      for (let i = 0; i <= N; i++) {
-        const t = i / N, m = w.M * t;
-        const ab = (k ? Math.sin(t * (5 + k * 0.9) + k * 1.7) * (3.2 + k * 0.9) * Math.pow(1 - t, 0.7) * Math.min(1, t * 6) : 0);
-        i ? kx.lineTo(X(m), Y(w.wert(m)) + ab) : kx.moveTo(X(m), Y(w.wert(m)) + ab);
-      }
-      kx.strokeStyle = k ? 'rgba(255,253,251,' + (0.34 - k * 0.025) + ')' : '#fffdfb';
-      kx.lineWidth = k ? 0.8 : 1.7; kx.stroke();
-    }
-    const ex = X(w.M), ey = Y(w.ende), g = kx.createRadialGradient(ex, ey, 0, ex, ey, 26);
-    g.addColorStop(0, 'rgba(255,220,170,.95)'); g.addColorStop(0.25, 'rgba(255,150,50,.55)'); g.addColorStop(1, 'rgba(255,130,40,0)');
-    kx.fillStyle = g; kx.beginPath(); kx.arc(ex, ey, 26, 0, 7); kx.fill();
-    kx.fillStyle = '#fff'; kx.beginPath(); kx.arc(ex, ey, 3, 0, 7); kx.fill();
-
-    kx.font = '12px ' + getComputedStyle(document.body).fontFamily; kx.fillStyle = 'rgba(255,253,251,.62)'; kx.textBaseline = 'top';
-    kx.textAlign = 'left'; kx.fillText('heute', l, u + 9);
-    kx.textAlign = 'right'; kx.fillText('in ' + w.jahre + ' Jahren', r, u + 9);
-    if (w.spaet != null && w.jahre >= 10) {
-      // „Start fünf Jahre später“ unter seinen Punkt, aber nie in „heute“ oder „in … Jahren“ hinein
-      const wort = 'Start fünf Jahre später', breite = kx.measureText(wort).width;
-      const frei = l + kx.measureText('heute').width + 12, grenze = r - kx.measureText('in ' + w.jahre + ' Jahren').width - 12 - breite;
-      const x = Math.max(frei, Math.min(X(60) - breite / 2, grenze));
-      if (grenze >= frei) { kx.textAlign = 'left'; kx.fillStyle = 'rgba(240,138,44,.9)'; kx.fillText(wort, x, u + 9); }
-    }
-    const ye = Y(w.ein);
-    if (Math.abs(ye - ey) > 26) { kx.textAlign = 'right'; kx.textBaseline = 'bottom'; kx.fillStyle = 'rgba(255,253,251,.62)'; kx.fillText('eingezahlt', r - 8, ye - 6); }
-  }
-
-  function zeigeZahlen(w) {
-    $('#aRate').textContent = euro.format(w.rate);
-    $('#aJahre').textContent = w.jahre + ' Jahre';
-    $('#aRendite').textContent = (w.rendite * 100).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
-    $('#tEnde').textContent = w.real ? 'Am Ende, in heutiger Kaufkraft' : 'Am Ende';
-    $('#tEin').textContent = w.real ? 'Eingezahlt, in heutiger Kaufkraft' : 'Eingezahlt';
-    $('#eEnde').textContent = euro.format(w.ende);
-    $('#eEin').textContent = euro.format(w.ein);
-    $('#eErtrag').textContent = euro.format(Math.max(0, w.ende - w.ein));
-    // Später anfangen: Lücke, davon weniger eingezahlt, davon weniger Ertrag – alles im selben Maßstab
-    const sp = $('#spaeter'); sp.textContent = '';
-    if (w.spaet == null) sp.textContent = 'Bei so kurzer Laufzeit zählt vor allem, was du einzahlst.';
-    else {
-      const luecke = w.ende - w.spaet, wenigerEin = w.ein * 60 / w.M, wenigerErtrag = luecke - wenigerEin;
-      sp.append('Fünf Jahre später gestartet, sind es am Ende rund ', neu('b', '', euro.format(luecke)), ' weniger');
-      sp.append(wenigerErtrag > 1
-        ? ': ' + euro.format(wenigerEin) + ' weniger eingezahlt, ' + euro.format(wenigerErtrag) + ' weniger Ertrag.'
-        : ' – genau das, was du nicht eingezahlt hast.');
-    }
-    Object.values(R).forEach((el) => { if (el.type === 'range') el.style.setProperty('--f', ((el.value - el.min) / (el.max - el.min) * 100) + '%'); });
-  }
-
-  // Die Kurve gleitet zum neuen Stand, statt zu springen: die gezeigten
-  // Einstellungen laufen den gewählten hinterher, gerechnet wird jedes Bild neu.
-  function gleite() {
-    const z = zielwerte, a = zeigt, f = 0.2;
-    const nah = Math.abs(z.rate - a.rate) < 0.5 && Math.abs(z.jahre - a.jahre) < 0.02 && Math.abs(z.rendite - a.rendite) < 0.0002;
-    zeigt = nah ? z : { rate: a.rate + (z.rate - a.rate) * f, jahre: a.jahre + (z.jahre - a.jahre) * f, rendite: a.rendite + (z.rendite - a.rendite) * f, real: z.real };
-    const w = rechne(zeigt); w.jahre = z.jahre;
-    zeichne(w);
-    if (nah) laeuft = false; else requestAnimationFrame(gleite);
-  }
-  function aktualisiere(sofort) {
-    zielwerte = eingestellt(); zeigeZahlen(rechne(zielwerte));
-    if (sofort || !zeigt || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { zeigt = zielwerte; zeichne(rechne(zeigt)); return; }
-    if (!laeuft) { laeuft = true; requestAnimationFrame(gleite); }
-  }
-  Object.values(R).forEach((el) => el.addEventListener('input', () => aktualisiere(false)));
-  window.addEventListener('resize', () => aktualisiere(true));
-  if ('ResizeObserver' in window) new ResizeObserver(() => aktualisiere(true)).observe(kurve);
-  aktualisiere(true);
 
   // ============================================================= Porträt
   function zeichnePortrait(farbe, daten) {
@@ -452,22 +353,51 @@
   }
 
   // ============================================================ Formular
+  // Mit einem Zugangsschlüssel (Angabe „Schlüssel fürs Kontaktformular“) schickt die Seite die Nachricht
+  // selbst an deine E-Mail. Ohne Schlüssel öffnet sie das E-Mail-Programm des Besuchers.
+  const formHinweis = $('#formhinweis'), senden = $('#senden');
+  const mitVersand = () => !angabe('formular_schluessel').leer;
+  const formRuhe = () => {
+    formHinweis.textContent = mitVersand() ? 'Deine Nachricht geht direkt an mich. Sonst wird nichts gespeichert.'
+      : 'Öffnet dein E-Mail-Programm mit der fertigen Nachricht. Auf dieser Seite wird nichts gespeichert.';
+    senden.firstChild.textContent = mitVersand() ? 'Nachricht senden ' : 'Nachricht vorbereiten ';
+  };
+  formRuhe();
   $('#formular').addEventListener('submit', (e) => {
     e.preventDefault();
-    const f = e.target, hinweis = $('#formhinweis'), post = angabe('email');
+    const f = e.target, post = angabe('email');
     const name = f.name.value.trim(), kontakt = f.kontakt.value.trim();
-    if (!name || !kontakt) { hinweis.textContent = 'Bitte noch deinen Namen und einen Weg, dich zu erreichen.'; (name ? f.kontakt : f.name).focus(); return; }
+    if (!name || !kontakt) { formHinweis.textContent = 'Bitte noch deinen Namen und einen Weg, dich zu erreichen.'; (name ? f.kontakt : f.name).focus(); return; }
+    const themen = $$('input[name=thema]:checked', f).map((c) => c.value), nachricht = f.text.value.trim();
+
+    if (mitVersand()) {
+      if (f.botcheck.checked) return;                    // ein Programm hat das versteckte Feld angekreuzt
+      senden.disabled = true; formHinweis.textContent = 'Wird gesendet …';
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: angabe('formular_schluessel').wert, subject: 'Erstgespräch – ' + name, from_name: 'Webseite',
+          Name: name, 'Erreichbar unter': kontakt, Themen: themen.join(', ') || '–', Nachricht: nachricht || '–',
+        }),
+      }).then((r) => r.json()).then((d) => {
+        if (!d.success) throw new Error(d.message || 'abgelehnt');
+        f.reset(); formHinweis.textContent = 'Danke, deine Nachricht ist angekommen. Ich melde mich bei dir.';
+      }).catch(() => {
+        formHinweis.textContent = 'Das Senden hat nicht geklappt. ' + (post.leer ? 'Bitte versuch es später noch einmal.' : 'Schreib mir bitte direkt an ' + post.wert + '.');
+      }).finally(() => { senden.disabled = false; });
+      return;
+    }
+
     if (post.leer) {
-      hinweis.textContent = entwurf ? 'Deine E-Mail-Adresse fehlt noch. Trag sie unten rechts über „Entwurf“ ein.'
+      formHinweis.textContent = entwurf ? 'Deine E-Mail-Adresse fehlt noch. Trag sie unten rechts über „Entwurf“ ein.'
         : 'Das Formular ist noch nicht eingerichtet. Bitte melde dich auf einem anderen Weg.';
       return;
     }
-    const themen = $$('input[name=thema]:checked', f).map((c) => c.value);
     const text = ['Hallo ' + angabe('vorname').wert + ',', '', 'ich möchte ein Erstgespräch vereinbaren.', '',
       'Name: ' + name, 'Erreichbar unter: ' + kontakt, themen.length ? 'Themen: ' + themen.join(', ') : null,
-      f.text.value.trim() ? '\n' + f.text.value.trim() : null].filter((z) => z !== null).join('\n');
+      nachricht ? '\n' + nachricht : null].filter((z) => z !== null).join('\n');
     location.href = 'mailto:' + post.wert + '?subject=' + encodeURIComponent('Erstgespräch – ' + name) + '&body=' + encodeURIComponent(text);
-    hinweis.textContent = 'Dein E-Mail-Programm sollte sich jetzt öffnen. Passiert nichts? Schreib direkt an ' + post.wert + '.';
+    formHinweis.textContent = 'Dein E-Mail-Programm sollte sich jetzt öffnen. Passiert nichts? Schreib direkt an ' + post.wert + '.';
   });
 
   // ============================================================== Prüfen

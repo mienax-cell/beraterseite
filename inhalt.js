@@ -57,6 +57,10 @@ window.INHALT = {
       gruppe: 1, name: 'Link zur Terminbuchung', wert: '', ersatz: 'leer lassen = Knopf führt zum Kontakt', status: 'offen', freiwillig: true,
       hinweis: 'Nur falls du ein Buchungswerkzeug nutzt.',
     },
+    formular_schluessel: {
+      gruppe: 1, name: 'Schlüssel fürs Kontaktformular', wert: '', ersatz: 'Zugangsschlüssel von web3forms.com', status: 'offen', freiwillig: true,
+      hinweis: 'Damit schickt das Formular Nachrichten direkt an deine E-Mail. So bekommst du ihn: auf web3forms.com deine E-Mail-Adresse eintragen, der Schlüssel kommt per Mail. Hier einfügen und an Claude geben. Ohne Schlüssel öffnet das Formular das E-Mail-Programm des Besuchers.',
+    },
 
     // ------------------------------------------------- Das Erstgespräch
     gespraech_dauer: {
@@ -95,7 +99,7 @@ window.INHALT = {
     erlaubnis: {
       gruppe: 4, name: 'Erlaubnis und Status', wert: '', status: 'offen', pflicht: true,
       ersatz: 'Art der Erlaubnis nach der Gewerbeordnung',
-      hinweis: 'Steht in deinen Vertragsunterlagen. Nenne alle Erlaubnisse, die zu den sechs Themen auf der Seite gehören. Ein Thema ohne Erlaubnis sollte von der Seite verschwinden.',
+      hinweis: 'Steht in deinen Vertragsunterlagen. Nenne alle Erlaubnisse, die zu den vier Themen auf der Seite gehören. Ein Thema ohne Erlaubnis sollte von der Seite verschwinden.',
     },
     register: {
       gruppe: 4, name: 'Registernummer', wert: '', ersatz: 'Nummer im Vermittlerregister', status: 'offen', pflicht: true,
@@ -118,37 +122,12 @@ window.INHALT = {
     },
   },
 
-  // Die sechs Fäden: stehen in der Bühne und unten als Karten.
-  faeden: [
-    { name: 'Einkommen absichern', text: 'Deine Arbeitskraft ist meist das Wertvollste, was du hast. Was passiert, wenn sie ausfällt?', frage: 'Wovon lebe ich, wenn ich ein Jahr nicht arbeiten kann?' },
-    { name: 'Gesundheit & Haftung', text: 'Die großen Risiken zuerst: Krankheit, Unfall und der Schaden, den du jemand anderem zufügst.', frage: 'Welche Versicherungen brauche ich wirklich – und welche nicht?' },
-    { name: 'Altersvorsorge', text: 'Die gesetzliche Rente ist ein Fundament, kein fertiges Haus. Je früher du anfängst, desto kleiner die Raten.', frage: 'Wie groß ist meine Lücke – in Euro, nicht in Prozent?' },
-    { name: 'Vermögensaufbau', text: 'Regelmäßig, breit gestreut, auf lange Sicht. Klingt langweilig, ist aber der Plan. Eine Garantie gibt es dabei nicht.', frage: 'Wie viel sollte ich im Monat zurücklegen?' },
-    { name: 'Eigenheim', text: 'Kaufen oder mieten ist eine Rechenaufgabe und keine Glaubensfrage. Rechnen wir sie durch.', frage: 'Wie viel Haus kann ich mir leisten?' },
-    { name: 'Förderung & Zuschüsse', text: 'Zulagen vom Staat, Zuschüsse vom Arbeitgeber, vermögenswirksame Leistungen: Geld, das viele liegen lassen.', frage: 'Was steht mir zu, das ich nicht abrufe?' },
-  ],
-
-  // Zahlen mit Quelle. Recherche vom 12.10.2026 (videos/rente-vorsorge/quellen.md).
-  zahlen: [
-    {
-      wert: '48 %', titel: 'Rentenniveau 2026',
-      text: 'Das vergleicht eine Musterrente nach 45 Jahren Durchschnittsverdienst mit dem Durchschnittslohn, beide nach Sozialabgaben und vor Steuern. Es heißt nicht: 48 % deines letzten Gehalts.',
-      quelle: 'Deutsche Rentenversicherung, „Rentenversicherung in Zahlen 2026“, S. 27',
-    },
-    {
-      wert: '1.195 €', titel: 'Altersrente im Schnitt',
-      text: 'Ausgezahlt im Monat, nach Kranken- und Pflegeversicherung, vor Steuern. Stand 31.12.2025.',
-      quelle: '„Rentenversicherung in Zahlen 2026“, S. 34/35',
-    },
-    {
-      wert: '20,7 Jahre', titel: 'So lange wird eine Rente gezahlt',
-      text: 'Im Schnitt, bei Renten, die 2025 endeten. 1960 waren es in Westdeutschland 9,9 Jahre – heute also gut doppelt so lange.',
-      quelle: '„Rentenversicherung in Zahlen 2026“, S. 66',
-    },
-    {
-      wert: 'rund 740 €', titel: 'Kaufkraft von 1.000 € in 20 Jahren',
-      text: 'Rechenbeispiel der Rentenversicherung bei 1,5 % Inflation im Jahr.',
-      quelle: 'Deutsche Rentenversicherung, „Die Renteninformation – mehr wissen“, 22. Auflage (2/2026), Abschnitt „Der Kaufkraftverlust“',
-    },
+  // Die vier Themen: stehen als Karten im Wirbel der Bühne und unten auf der Seite.
+  // Absichtlich nur angeteasert: je ein Buchstabe, ein Wort, eine Frage. Die Auflösung gibt es im Erstgespräch.
+  themen: [
+    { buchstabe: 'M', name: 'Money', frage: 'Wo liegt dein Geld – und was macht es dort?' },
+    { buchstabe: 'I', name: 'Investment', frage: 'Wie wächst dein Geld, statt an Kaufkraft zu verlieren?' },
+    { buchstabe: 'R', name: 'Risiko', frage: 'Was könnte deine Pläne einreißen – und was kostet dich zu viel?' },
+    { buchstabe: 'S', name: 'Subventionen', frage: 'Welches Geld vom Staat lässt du gerade liegen?' },
   ],
 };

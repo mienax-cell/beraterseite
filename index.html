@@ -7,6 +7,7 @@
 <meta name="description" content="Absichern, vorsorgen, Vermögen aufbauen – als ein Plan statt als Stapel Verträge.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#ece4e1">
+<script>if (new URLSearchParams(location.search).has('b')) document.documentElement.classList.add('var-b');</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317151b'/%3E%3Cpath d='M16 7v18M7 16h18' stroke='%23f08a2c' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
 /* ============================================================== Grundmaße
@@ -41,7 +42,7 @@ em{font-family:var(--kursiv);font-style:italic;font-weight:400;letter-spacing:-.
 button,input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--tinte);outline-offset:3px;border-radius:4px}
-#rechner :focus-visible,.kopfzeile.auf-dunkel :focus-visible{outline-color:var(--glut)}
+.kopfzeile.auf-dunkel :focus-visible{outline-color:var(--glut)}
 ::selection{background:var(--glut);color:var(--tinte)}
 
 /* ---------- kleine Bausteine ---------- */
@@ -123,18 +124,9 @@ button,input,textarea{font:inherit;color:inherit}
 .zeig{opacity:0;transform:translateY(24px);transition:opacity .9s var(--schwung) calc(var(--i,0)*90ms),transform .9s var(--schwung) calc(var(--i,0)*90ms)}
 .zeig.da{opacity:1;transform:none}
 
-/* Zahlen */
-.zahlen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--spalt)}
-.zahl{border-top:1px solid var(--tinte);padding-top:1.1rem;display:flex;flex-direction:column;gap:.55rem}
-.zahl strong{font-size:clamp(2.2rem,3.6vw,3.3rem);font-weight:320;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
-.zahl h3{font-size:var(--s-text);font-weight:600}
-.zahl p{font-size:var(--s-text);color:var(--tinte-2);line-height:1.5}
-.zahl small{font-size:var(--s-klein);color:var(--tinte-3);line-height:1.4;margin-top:auto;padding-top:.6rem}
-.fussnote{margin-top:2.2rem;font-size:var(--s-klein);color:var(--tinte-3);max-width:44rem}
-
 /* Ablauf */
 #weg,#ueber{background:var(--weiss)}
-.schritte{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--spalt);counter-reset:s}
+.schritte{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--spalt);counter-reset:s}
 .schritt{counter-increment:s;position:relative;padding-top:2.6rem}
 .schritt::before{content:"";position:absolute;left:0;top:.55rem;height:1px;width:100%;background:linear-gradient(90deg,var(--tinte) 0%,var(--tinte) 60%,var(--glut) 100%);transform-origin:left;transform:scaleX(0);transition:transform 1.1s var(--schwung) calc(var(--i,0)*140ms + 150ms)}
 .schritt::after{content:"";position:absolute;right:-3px;top:.55rem;width:7px;height:7px;margin-top:-3px;border-radius:50%;background:var(--glut);box-shadow:0 0 0 4px rgba(240,138,44,.18),0 0 18px 4px rgba(240,138,44,.55);opacity:0;transition:opacity .5s calc(var(--i,0)*140ms + 1000ms)}
@@ -147,49 +139,17 @@ button,input,textarea{font:inherit;color:inherit}
 .schritt p{font-size:var(--s-text);color:var(--tinte-2)}
 .schritt .eck{display:block;margin-top:.7rem;font-size:var(--s-klein);color:var(--tinte)}
 
-/* Rechner */
-#rechner{background:var(--tinte);color:var(--weiss)}
-#rechner .lauf{color:rgba(255,253,251,.7)}
-.regler{display:grid;gap:1.1rem;align-content:start}
-.regler label{display:grid;gap:.1rem}
-.regler .kopf{display:flex;justify-content:space-between;align-items:baseline;font-size:var(--s-klein);color:rgba(255,253,251,.66)}
-.regler output{font-size:var(--s-titel);font-weight:340;letter-spacing:-.02em;color:var(--weiss);font-variant-numeric:tabular-nums}
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;cursor:pointer;margin:0}
-input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--glut) var(--f,50%),rgba(255,255,255,.24) var(--f,50%))}
-input[type=range]::-moz-range-track{height:2px;background:rgba(255,255,255,.24)}
-input[type=range]::-moz-range-progress{height:2px;background:var(--glut)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-8px;border-radius:50%;background:var(--weiss);border:0;box-shadow:0 0 0 5px rgba(240,138,44,.22),0 0 16px rgba(240,138,44,.6)}
-input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--weiss);border:0;box-shadow:0 0 0 5px rgba(240,138,44,.22),0 0 16px rgba(240,138,44,.6)}
-.regler label.schalter{display:flex;align-items:center;gap:.75rem;min-height:44px;font-size:var(--s-klein);color:rgba(255,253,251,.8);cursor:pointer}
-.schalter input{position:absolute;opacity:0}
-.schalter span{flex:none;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,.22);position:relative;transition:background .25s}
-.schalter span::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:var(--weiss);transition:transform .25s var(--schwung)}
-.schalter input:checked+span{background:var(--glut)}
-.schalter input:checked+span::after{transform:translateX(16px)}
-.schalter input:focus-visible+span{outline:2px solid var(--glut);outline-offset:3px}
-.ergebnis{display:flex;flex-direction:column;gap:1.3rem;min-width:0}
-.summe{display:grid;grid-template-columns:auto auto 1fr;gap:.9rem 2.4rem;align-items:end}
-.summe div{display:grid;gap:.2rem}
-.summe span{font-size:var(--s-etikett);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,253,251,.62)}
-.summe b{font-weight:320;font-size:var(--s-titel);letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
-.summe .haupt b{font-size:clamp(2.6rem,5.2vw,4.4rem);letter-spacing:-.045em;line-height:1}
-.summe .ertrag b{color:var(--glut)}
-.beispiel{font-size:var(--s-klein);color:rgba(255,253,251,.62);margin-top:-.5rem}
-.kurve{position:relative;flex:1;min-height:260px;border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(255,255,255,.14)}
-.kurve canvas{position:absolute;inset:0;width:100%;height:100%}
-.spaeter{font-size:var(--s-lauf);color:rgba(255,253,251,.86);max-width:38rem}
-.spaeter b{color:var(--glut);font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
-.kleingedruckt{font-size:var(--s-klein);color:rgba(255,253,251,.62);max-width:46rem;margin-top:2.4rem;line-height:1.5}
-
 /* Themen */
-.karten{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--spalt)*.6)}
-.karte{background:var(--weiss);border-radius:18px;padding:1.6rem 1.6rem 1.5rem;display:flex;flex-direction:column;gap:.7rem;position:relative;overflow:hidden;transition:transform .45s var(--schwung),box-shadow .45s,opacity .9s var(--schwung) calc(var(--i,0)*90ms)}
+.karten{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:calc(var(--spalt)*.6)}
+.karte{background:var(--weiss);border-radius:18px;padding:1.5rem 1.6rem 1.6rem;display:flex;flex-direction:column;gap:.5rem;position:relative;overflow:hidden;transition:transform .45s var(--schwung),box-shadow .45s,opacity .9s var(--schwung) calc(var(--i,0)*90ms)}
 .karte.da:hover{transform:translateY(-4px);box-shadow:0 24px 50px -28px rgba(23,21,27,.4)}
-.karte .faden{position:absolute;right:1.4rem;top:1.55rem;width:74px;height:1px;background:linear-gradient(90deg,transparent,var(--tinte-3));transition:width .5s var(--schwung)}
+.karte .faden{position:absolute;right:1.4rem;top:1.9rem;width:64px;height:1px;background:linear-gradient(90deg,transparent,var(--tinte-3));transition:width .5s var(--schwung)}
 .karte .faden::after{content:"";position:absolute;right:-3px;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--glut);box-shadow:0 0 14px 3px rgba(240,138,44,.55)}
-.karte:hover .faden{width:120px}
-.karte p{font-size:var(--s-text);color:var(--tinte-2)}
-.karte .frage{margin-top:auto;padding-top:.9rem;border-top:1px solid var(--linie);font-family:var(--kursiv);font-style:italic;font-size:var(--s-lauf);line-height:1.35;color:var(--tinte);min-height:4.1rem}
+.karte:hover .faden{width:100px}
+.karte .buchstabe{font-family:var(--kursiv);font-style:italic;font-size:clamp(3rem,4.6vw,4.2rem);line-height:1;color:var(--tinte)}
+.karte h3{font-size:var(--s-etikett);font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--tinte-3)}
+.karte .frage{margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--linie);font-size:var(--s-lauf);line-height:1.35;color:var(--tinte);flex:1}
+.nachsatz{margin-top:1.8rem;font-family:var(--kursiv);font-style:italic;font-size:var(--s-titel);color:var(--tinte-2)}
 
 /* Über mich */
 .portrait{position:relative;aspect-ratio:4/5;border-radius:28px;overflow:hidden;background:radial-gradient(110% 90% at 50% 30%,#ece4e1,#cdbdc0);align-self:center}
@@ -273,29 +233,62 @@ html:not(.entwurf-an) .blatt .geruest{display:none}
 .schubfuss .still{background:none;box-shadow:0 0 0 1px var(--linie)}
 .schubfuss output{font-size:var(--s-klein);color:var(--tinte-2);flex-basis:100%}
 
+/* ================================================ Beispiel B: Animation über die ganze Seite
+   Das 3D-Bild steht fest hinter der Seite und läuft mit dem Scrollen von oben bis unten durch.
+   Breit: Inhalt links, Motiv rechts. Schmal: der Inhalt gleitet als Blätter über das Bild. */
+.var-b body{background:transparent}
+.var-b body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(120% 95% at var(--mx,70%) var(--my,45%),var(--hell,#ece4e1) 0%,var(--tief,#d5c8c8) 100%)}
+.var-b #reise{height:auto}
+.var-b .buehne{position:static;height:auto;min-height:100vh;min-height:100svh;overflow:visible;background:none;display:flex;align-items:center;padding:6rem var(--innen) 3rem}
+.var-b #szene{position:fixed;inset:0;z-index:0;height:100vh;height:100lvh}
+.var-b #marken{position:fixed;inset:0;z-index:2;pointer-events:none}
+.var-b .kern-glut{position:fixed;z-index:0}
+.var-b .leiste,.var-b .ladehinweis,.var-b .kapitel~.kapitel{display:none}
+.var-b .kapitel,.var-b .buehne[data-modus] .kapitel{position:relative;inset:auto;transform:none;opacity:1!important;visibility:visible!important;width:min(31rem,100%);max-width:none}
+.var-b main,.var-b .fuss{position:relative;z-index:1}
+.var-b .abschnitt,.var-b #weg,.var-b #ueber{background:transparent}
+.var-b .abschnitt{min-height:92vh;display:flex;flex-direction:column;justify-content:center}
+.var-b .abschnitt>*{width:min(33rem,44vw)}
+.var-b .schritte,.var-b .karten,.var-b .zwei,.var-b .kontakt,.var-b .eckdaten{grid-template-columns:minmax(0,1fr)}
+.var-b .fragen>div:first-child{position:static}
+.var-b .portrait{display:none}
+.var-b .karte{background:rgba(255,253,251,.78);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.var-b .kontakt{padding:1.6rem}
+.var-b .kopfzeile.fest{background:rgba(245,242,239,.55)}
+@media (max-width:899px),(max-aspect-ratio:23/20){
+  .var-b .buehne{align-items:flex-end;padding-bottom:2.4rem}
+  .var-b .abschnitt{min-height:0;margin-top:62vh;padding-block:2.6rem;background:rgba(245,242,239,.93)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-radius:26px 26px 0 0}
+  .var-b .abschnitt>*{width:auto}
+  .var-b #kontakt{margin-bottom:0}
+  .var-b .fuss{background:rgba(245,242,239,.93)}
+}
+/* Umschalter zwischen den beiden Beispielen (vorläufig, bis du dich entschieden hast) */
+.beispiele{position:fixed;z-index:60;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:.15rem;background:rgba(23,21,27,.92);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:.22rem;font-size:var(--s-etikett)}
+.beispiele a{color:rgba(255,255,255,.72);text-decoration:none;padding:.42rem .8rem;border-radius:999px}
+.beispiele a.an{background:var(--glut);color:var(--tinte)}
+
 /* ================================================================ schmaler */
 @media (max-width:1199px){
-  .zahlen,.schritte{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:2.6rem}
+  .karten{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:1079px){
   .pille{display:none}
   .kopfzeile{grid-template-columns:1fr auto}
-  .karten{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:899px){
-  .rechner,.fragen,.kontakt{grid-template-columns:minmax(0,1fr)}
+  .fragen,.kontakt{grid-template-columns:minmax(0,1fr)}
   .fragen>div:first-child{position:static}
   .ueber{grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr)}
   .eckdaten{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:639px){
-  .zahlen,.schritte,.karten,.ueber{grid-template-columns:minmax(0,1fr)}
+  .beispiele a span{display:none}
+  .beispiele a{padding:.42rem .95rem}
+  .schritte,.karten,.ueber{grid-template-columns:minmax(0,1fr)}
+  .schritte{row-gap:2.4rem}
   .portrait{max-width:20rem}
   .logo small{display:none}
   details p{padding-right:0}
-  .summe{grid-template-columns:1fr 1fr}
-  .summe .haupt{grid-column:1/-1}
-  .karte .frage{min-height:0}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -312,7 +305,7 @@ html:not(.entwurf-an) .blatt .geruest{display:none}
     <span><span data-feld="vorname"></span> <span data-feld="nachname"></span><small data-feld="titel"></small></span>
   </a>
   <nav class="pille" aria-label="Seite">
-    <a href="#zahlen">Zahlen</a><a href="#weg">Ablauf</a><a href="#rechner">Rechner</a><a href="#themen">Themen</a><a href="#ueber">Über mich</a><a href="#fragen">Fragen</a><a href="#kontakt">Kontakt</a>
+    <a href="#weg">Ablauf</a><a href="#themen">Themen</a><a href="#ueber">Über mich</a><a href="#fragen">Fragen</a><a href="#kontakt">Kontakt</a>
   </nav>
   <a class="knopf hell" href="#kontakt" data-termin>Termin <i aria-hidden="true">↗</i></a>
 </header>
@@ -335,26 +328,26 @@ html:not(.entwurf-an) .blatt .geruest{display:none}
     </article>
 
     <article class="kapitel" data-von="0.125" data-bis="0.285">
-      <p class="schild">01 · Zuhören</p>
+      <p class="schild">Erstgespräch</p>
       <h2>Erst verstehen, wo du <em>stehst</em>.</h2>
-      <p class="lauf">Bevor ich etwas empfehle, schaue ich mir deine Lage an: Einkommen, Ausgaben, Verträge, Pläne.</p>
+      <p class="lauf">Ich erkläre dir, wie ich arbeite. Dann nehme ich auf, was du hast: Einkommen, Ausgaben, Verträge, Ziele.</p>
     </article>
 
     <article class="kapitel" data-von="0.315" data-bis="0.505">
-      <p class="schild">02 · Sortieren</p>
-      <h2>Sechs Themen, die meist <em>lose</em> herumfliegen.</h2>
-      <p class="lauf">Verträge, Konten, Unterlagen: Jedes Thema für sich ist einfach. Schwierig wird es, weil sie zusammenhängen.</p>
+      <p class="schild">Dazwischen</p>
+      <h2>Vier Themen, die meist <em>lose</em> herumfliegen.</h2>
+      <p class="lauf">Bis zum zweiten Termin sehe ich mir alles an – Stück für Stück.</p>
       <ul class="themenzeile" id="themenzeile"></ul>
     </article>
 
     <article class="kapitel" data-von="0.545" data-bis="0.715">
-      <p class="schild">03 · Bündeln</p>
+      <p class="schild">Zweitgespräch</p>
       <h2>Aus vielen Verträgen wird <em>ein Plan</em>.</h2>
-      <p class="lauf">Was doppelt ist, kann weg. Was fehlt, zeige ich dir. Was passt, bleibt – und bekommt seinen Platz.</p>
+      <p class="lauf">Ich lege dir den Plan vor. Du sagst mir offen, was dir passt und was nicht.</p>
     </article>
 
     <article class="kapitel" data-von="0.765" data-bis="2">
-      <p class="schild">04 · Dranbleiben</p>
+      <p class="schild">Danach</p>
       <h2>Und dann bleibe ich <em>dran</em>.</h2>
       <p class="lauf">Ein Plan ist kein Papier für die Schublade. Einmal im Jahr schauen wir gemeinsam drauf – und immer, wenn sich bei dir etwas ändert.</p>
       <div class="zeile"><a class="knopf dunkel" href="#kontakt" data-termin>Erstgespräch vereinbaren <i aria-hidden="true">↗</i></a></div>
@@ -366,68 +359,28 @@ html:not(.entwurf-an) .blatt .geruest{display:none}
   </div>
 </section>
 
-<!-- =========================================================== Zahlen -->
-<section class="abschnitt" id="zahlen">
-  <div class="kopf2 zeig">
-    <p class="schild">Zahlen</p>
-    <h2 class="gross">Vier Zahlen, die du <em>kennen</em> solltest.</h2>
-    <p class="lauf">Alle vier stammen von der Rentenversicherung – mit Fundstelle zum Nachlesen.</p>
-  </div>
-  <div class="zahlen" id="zahlenliste"></div>
-  <p class="fussnote zeig">Zur Einordnung: Eine einzelne Rente ist nicht das ganze Einkommen im Alter. Partner, Betriebsrente und eigenes Vermögen stehen in dieser Statistik nicht. Abgerufen im Oktober 2026.</p>
-</section>
-
 <!-- =========================================================== Ablauf -->
 <section class="abschnitt" id="weg">
   <div class="kopf2 zeig">
     <p class="schild">Ablauf</p>
-    <h2 class="gross">Vier Schritte. <em>Kein</em> Druck.</h2>
-    <p class="lauf">Du entscheidest nach jedem Schritt, ob es einen nächsten gibt.</p>
+    <h2 class="gross">Zwei Termine. <em>Kein</em> Druck.</h2>
+    <p class="lauf">Mehr braucht es am Anfang nicht. Nach jedem Termin entscheidest du, ob es weitergeht.</p>
   </div>
   <ol class="schritte">
-    <li class="schritt zeig" style="--i:0"><span class="nr"></span><h3>Zuhören</h3><p>Am Telefon, per Video oder bei einem Kaffee. Du erzählst, ich höre zu.</p><span class="eck"><span data-feld="gespraech_dauer"></span> · <span data-feld="gespraech_preis"></span></span></li>
-    <li class="schritt zeig" style="--i:1"><span class="nr"></span><h3>Sortieren</h3><p>Du bringst mit, was du hast: Ordner, App oder Schuhkarton. Ich zeige dir, was du da eigentlich besitzt.</p></li>
-    <li class="schritt zeig" style="--i:2"><span class="nr"></span><h3>Bündeln</h3><p>Dein Plan, schwarz auf weiß: was bleibt, was sich zu ändern lohnt, was fehlt. Mit Zahlen zum Nachrechnen.</p></li>
-    <li class="schritt zeig" style="--i:3"><span class="nr"></span><h3>Dranbleiben</h3><p>Einmal im Jahr schauen wir gemeinsam drauf. Und immer, wenn sich bei dir etwas ändert.</p></li>
+    <li class="schritt zeig" style="--i:0"><span class="nr"></span><h3>Erstgespräch</h3><p>Ich erkläre dir, was ich mache und wie ich arbeite. Dann nehme ich auf, was du hast: Einkommen, Ausgaben, Verträge, Ziele.</p><span class="eck"><span data-feld="gespraech_dauer"></span> · <span data-feld="gespraech_preis"></span></span></li>
+    <li class="schritt zeig" style="--i:1"><span class="nr"></span><h3>Zweitgespräch</h3><p>Bis dahin habe ich alles durchgesehen. Ich lege dir den Plan vor, und du sagst mir offen, was dir passt und was nicht.</p></li>
   </ol>
-</section>
-
-<!-- ========================================================== Rechner -->
-<section class="abschnitt" id="rechner" data-dunkel>
-  <div class="kopf2 zeig">
-    <p class="schild hell">Rechner</p>
-    <h2 class="gross">Was <em>Zeit</em> ausmacht.</h2>
-    <p class="lauf">Schieb die Regler. Die Kurve zeigt, was aus einer festen Sparrate werden kann – und was sich ändert, wenn du später anfängst.</p>
-  </div>
-  <div class="rechner zwei zeig">
-    <div class="regler">
-      <label><span class="kopf">Sparrate im Monat <output id="aRate"></output></span><input type="range" id="rRate" min="25" max="1000" step="25" value="150"></label>
-      <label><span class="kopf">Laufzeit <output id="aJahre"></output></span><input type="range" id="rJahre" min="5" max="45" step="1" value="30"></label>
-      <label><span class="kopf">Angenommene Rendite im Jahr <output id="aRendite"></output></span><input type="range" id="rRendite" min="0" max="7" step="0.5" value="5"></label>
-      <label class="schalter"><input type="checkbox" id="rKaufkraft"><span></span>In heutiger Kaufkraft zeigen (Annahme: 2&nbsp;% Inflation im Jahr)</label>
-    </div>
-    <div class="ergebnis">
-      <div class="summe">
-        <div class="haupt"><span id="tEnde">Am Ende</span><b id="eEnde">–</b></div>
-        <div><span id="tEin">Eingezahlt</span><b id="eEin">–</b></div>
-        <div class="ertrag"><span>Ertrag</span><b id="eErtrag">–</b></div>
-      </div>
-      <p class="beispiel">Rechenbeispiel, keine Prognose.</p>
-      <div class="kurve"><canvas id="kurve" role="img" aria-label="Verlauf von Einzahlungen und Guthaben"></canvas></div>
-      <p class="spaeter" id="spaeter" role="status"></p>
-    </div>
-  </div>
-  <p class="kleingedruckt">Rechenbeispiel mit gleichbleibender Rendite und Einzahlung am Monatsende. Echte Anlagen schwanken und können auch im Minus liegen. Kosten und Steuern sind nicht abgezogen. Das ist keine Prognose und keine Anlageberatung.</p>
 </section>
 
 <!-- =========================================================== Themen -->
 <section class="abschnitt" id="themen">
   <div class="kopf2 zeig">
     <p class="schild">Themen</p>
-    <h2 class="gross">Die sechs <em>Themen</em> im Einzelnen.</h2>
-    <p class="lauf">Zu jedem gehört eine Frage, die du dir vermutlich schon gestellt hast. Bring sie einfach mit.</p>
+    <h2 class="gross">Vier Themen. <em>Ein</em> Ansprechpartner.</h2>
+    <p class="lauf">Zu jedem gehört eine Frage, die du dir vermutlich schon gestellt hast.</p>
   </div>
   <div class="karten" id="karten"></div>
+  <p class="nachsatz zeig">Die Antworten gibt es im Erstgespräch.</p>
 </section>
 
 <!-- ======================================================== Über mich -->
@@ -455,7 +408,7 @@ html:not(.entwurf-an) .blatt .geruest{display:none}
       <details open><summary>Was kostet mich das Erstgespräch?</summary><p>Es ist <span data-feld="gespraech_preis"></span>. Ob es danach weitergeht, entscheidest du.</p></details>
       <details><summary>Wovon lebst du dann?</summary><p data-feld="antwort_verguetung"></p></details>
       <details><summary>Bist du unabhängig?</summary><p data-feld="antwort_unabhaengig"></p></details>
-      <details><summary>Ich habe schon Verträge. Lohnt sich das trotzdem?</summary><p>Gerade dann. Beim Sortieren siehst du erst einmal, was du schon hast. Ob sich danach etwas ändert, entscheidest du.</p></details>
+      <details><summary>Ich habe schon Verträge. Lohnt sich das trotzdem?</summary><p>Gerade dann. Im Erstgespräch nehme ich auf, was du schon hast. Ob sich danach etwas ändert, entscheidest du.</p></details>
       <details><summary>Muss ich etwas unterschreiben?</summary><p>Im Erstgespräch nichts. Und später nur, was du verstanden hast und selbst willst.</p></details>
       <details><summary>Was passiert mit meinen Daten?</summary><p data-feld="antwort_daten"></p></details>
     </div>
@@ -479,6 +432,7 @@ html:not(.entwurf-an) .blatt .geruest{display:none}
       <label>Dein Name<input type="text" name="name" autocomplete="name" required></label>
       <label>So erreiche ich dich<input type="text" name="kontakt" placeholder="Telefon oder E-Mail" required></label>
       <fieldset><legend>Worum geht es?</legend><div class="wahl" id="wahl"></div></fieldset>
+      <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" hidden>
       <label>Magst du noch etwas dazusagen?<textarea name="text" rows="2"></textarea></label>
       <div class="unten">
         <small id="formhinweis" role="status">Öffnet dein E-Mail-Programm mit der fertigen Nachricht. Auf dieser Seite wird nichts gespeichert.</small>
@@ -497,6 +451,10 @@ html:not(.entwurf-an) .blatt .geruest{display:none}
     <button type="button" data-blatt="erstinfo">Erstinformation</button>
   </nav>
 </footer>
+
+<nav class="beispiele" aria-label="Beispiele für den Aufbau">
+  <a href="./" id="beispielA">A<span> · Animation oben</span></a><a href="./?b" id="beispielB">B<span> · über die ganze Seite</span></a>
+</nav>
 
 <!-- =============================== nur bei dir: Entwurfsknopf, Schublade -->
 <button class="entwurf" id="ausfuellen" type="button" title="Offene Angaben ausfüllen"><i aria-hidden="true"></i><span id="entwurfstext">Entwurf</span></button>
@@ -533,9 +491,10 @@ html:not(.entwurf-an) .blatt .geruest{display:none}
     <h3>Verantwortlich</h3>
     <p><span data-feld="vorname"></span> <span data-feld="nachname"></span>, <span data-feld="strasse"></span>, <span data-feld="plz_ort"></span> · <span data-feld="email"></span></p>
     <h3>Was diese Seite über dich speichert</h3>
-    <p>Nichts. Es gibt keine Cookies, keine Besuchsstatistik, keine eingebundenen fremden Dienste und keine Schriften von fremden Servern. Der Rechner läuft nur in deinem Browser.</p>
+    <p>Nichts. Es gibt keine Cookies, keine Besuchsstatistik und keine Schriften von fremden Servern.</p>
     <h3>Kontaktformular</h3>
-    <p>Das Formular schickt nichts ab. Es öffnet dein eigenes E-Mail-Programm mit einem fertigen Text. Erst wenn du diese Mail selbst sendest, erreichen mich deine Angaben.</p>
+    <p data-wenn-leer="formular_schluessel">Das Formular schickt nichts ab. Es öffnet dein eigenes E-Mail-Programm mit einem fertigen Text. Erst wenn du diese Mail selbst sendest, erreichen mich deine Angaben.</p>
+    <p data-wenn="formular_schluessel">Schickst du das Formular ab, gehen dein Name, deine Kontaktangabe und deine Nachricht über den Dienst Web3Forms an meine E-Mail-Adresse. Ich nutze sie nur, um dir zu antworten.</p>
     <h3>Wenn du mich anrufst oder mir schreibst</h3>
     <p>Dann nutze ich deine Angaben nur, um dir zu antworten und dich zu beraten (Art. 6 Abs. 1 Buchstabe b DSGVO). Ich bewahre sie so lange auf, wie es dafür und für gesetzliche Pflichten nötig ist. <span data-wenn="whatsapp">Schreibst du über WhatsApp, gelten zusätzlich die Bedingungen dieses Anbieters. </span><span data-wenn="termin_link">Die Terminbuchung läuft über einen fremden Anbieter mit eigenen Datenschutzhinweisen.</span></p>
     <h3>Wo die Seite liegt</h3>

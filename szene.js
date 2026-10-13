@@ -3,7 +3,7 @@
  * Ein Bild, vom Scrollen gesteuert, mit Motiven aus der Finanzberatung:
  *   Kopf (rund 160.000 Punkte aus dem Foto)
  *   → Höhenlinien (vermessen, wo jemand steht)
- *   → Wirbel aus Münzen, Unterlagen und Goldstaub (alles liegt lose herum)
+ *   → Münzen und Unterlagen kreisen auf Bahnen, dazwischen Goldstaub (alles ist in Bewegung)
  *   → Ordnung: die Unterlagen werden zum Boden, die Münzen zu Säulen
  *   → Wachstum: die Säulen wachsen, darüber steigt eine glühende Kurve.
  *
@@ -108,6 +108,17 @@ vec3 wirbel(vec4 s, float zeit){
   const float k = 0.95;                                        // Neigung der Scheibe
   p = vec3(p.x, p.y*cos(k) - p.z*sin(k), p.y*sin(k) + p.z*cos(k));
   return uOrigin + p*uWirbel/2.3*vec3(1.0, 1.0, 0.75);
+}
+
+// Münzen und Blätter kreisen auf festen Bahnen mit Abstand zueinander, damit nichts ineinander steckt:
+// s.x = Halbmesser der Bahn, s.y = Höhe über der Scheibe, s.z = Platz auf der Bahn, s.w = Zufall.
+uniform float uBahn;      // Maßstab der Bahnen (passt sich dem freien Rahmen an)
+vec3 bahnOrt(vec4 s, float zeit){
+  float ang = s.z*6.28318 + (zeit*0.5 + uDreh*0.75)/s.x;      // innen schneller als außen
+  vec3 p = vec3(cos(ang)*s.x, s.y + 0.04*sin(zeit*0.9 + s.w*40.0), sin(ang)*s.x);
+  const float k = 0.95;
+  p = vec3(p.x, p.y*cos(k) - p.z*sin(k), p.y*sin(k) + p.z*cos(k));
+  return uOrigin + p*uBahn;
 }
 
 // Die Wachstumskurve über den Säulen (u = 0 links, 1 rechts oben).
@@ -215,8 +226,8 @@ uniform mat4 uPV;
 uniform float uArt;                  // 0 Münze, 1 Blatt
 uniform vec3 uMass;                  // Größe der Form
 uniform float uGeburt, uOrd, uWachs, uSechs;
-uniform vec3 uKarten[6];             // wo die sechs Themenkarten im Wirbel stehen
-out vec3 vN; out vec3 vPos; out vec2 vUV; out float vTeil; out vec4 vSeed; out float vSpez; out float vDepth;
+uniform vec3 uKarten[4];             // wo die vier Themenkarten stehen
+out vec3 vN; out vec3 vPos; out vec2 vUV; out float vTeil; out vec4 vSeed; out float vSpez; out float vDepth; out float vOrd;
 ${GEMEINSAM}
 mat3 dreh(vec3 a, float w){
   float c = cos(w), s = sin(w), t = 1.0 - c;
@@ -226,41 +237,45 @@ mat3 dreh(vec3 a, float w){
 }
 void main(){
   bool karte = uArt > 0.5 && aSorte.x >= 0.0 && uSechs > 0.5;
+  vec3 zf = fract(aSeed.w*vec3(7.13, 13.7, 3.31));           // drei Zufallswerte aus einem
   float o = weich(uOrd*1.6 - aPlatz.w*0.6);              // jedes Stück ordnet sich zu seiner Zeit ein
   float da = 1.0;
   vec3 ort;
-  if (uArt < 0.5 && aSorte.x > 0.5) {
-    // Wachstums-Münze: fällt später von oben auf ihre Säule
-    float k = weich(uWachs*1.5 - aPlatz.w*0.5);
-    ort = aPlatz.xyz + uChartO + vec3((aSeed.x - 0.5)*0.5*(1.0 - k), (1.0 - k)*(1.0 - k)*(2.2 + 1.6*aSeed.y), (aSeed.z - 0.5)*0.5*(1.0 - k));
-    da = smoothstep(0.25, 0.6, k);
+  bool spaeter = uArt < 0.5 && aSorte.x > 0.5;
+  if (spaeter) {
+    // Wachstums-Münze: regnet später von oben auf ihre Säule
+    // eine nach der anderen, gerade herab auf die eigene Säule: so berühren sich fallende Münzen nicht
+    float k = weich(uWachs*3.4 - aPlatz.w*2.4);
+    ort = aPlatz.xyz + uChartO + vec3(0.0, (1.0 - k)*(1.0 - k)*2.6, 0.0);
+    da = smoothstep(0.0, 0.3, k);
     o = 1.0;
   } else {
-    float g = weich(uGeburt*1.4 - aSeed.y*0.4);          // kommt aus dem Kopf
-    vec3 chaos = wirbel(aSeed, uTime);
-    if (karte) chaos = uKarten[int(aSorte.x)];
-    vec3 start = uOrigin + (aSeed.xyz - 0.5)*vec3(0.9, 1.3, 0.6);
+    float g = weich(uGeburt*1.4 - zf.y*0.4);             // kommt aus dem Kopf
+    vec3 chaos = karte ? uKarten[int(aSorte.x)] : bahnOrt(aSeed, uTime);
+    vec3 start = uOrigin + (zf - 0.5)*vec3(0.9, 1.3, 0.6);
     ort = mix(mix(start, chaos, g), aPlatz.xyz + uChartO, o);
-    ort.y += sin(o*3.14159)*(0.30 + 0.55*aSeed.z);       // im Bogen an den Platz
+    ort.y += sin(o*3.14159)*(0.30 + 0.55*zf.z);          // im Bogen an den Platz
     da = smoothstep(0.0, 0.5, g);
   }
-  // im Wirbel taumeln, in der Ordnung flach liegen
-  vec3 achse = normalize(aSeed.zxy - 0.5 + vec3(0.013));
-  float w = mod(uTime*(0.5 + 1.1*aSeed.w) + aSeed.x*31.0, 6.28318)*(1.0 - o);
-  if (uArt < 0.5 && aSorte.x > 0.5) w = 5.0*aSeed.w*(1.0 - weich(uWachs*1.5 - aPlatz.w*0.5));
+  // auf der Bahn ruhig drehen, in der Ordnung flach liegen
+  vec3 achse = normalize(zf - 0.5 + vec3(0.013));
+  float w = mod(uTime*(0.30 + 0.45*zf.x) + zf.y*31.0, 6.28318)*(1.0 - o);
+  if (spaeter) w = 0.0;
   if (karte) { achse = vec3(1.0, 0.0, 0.0); w = (1.45 + 0.10*sin(uTime*0.7 + aSorte.x*1.7))*(1.0 - o); }   // Themenkarten stehen dem Betrachter zugewandt
   mat3 R = dreh(achse, w);
-  float gr = da*mix(aSorte.y*(uArt < 0.5 ? 0.78 : 1.0), 1.0, o);
+  // auf der Bahn sind die Stücke kleiner, damit zwischen ihnen Luft bleibt
+  float klein = (karte ? aSorte.y : (uArt < 0.5 ? 0.58 : 0.95))*min(1.0, uBahn*1.2);
+  float gr = da*mix(klein, 1.0, o);
   vec3 wp = ort + R*(aP*uMass*gr);
   vec4 clip = uPV*vec4(wp, 1.0);
   gl_Position = da > 0.001 ? clip : vec4(2.0, 2.0, 2.0, 1.0);
-  vN = R*aN; vPos = wp; vUV = aUV; vTeil = aTeil; vSeed = aSeed; vSpez = karte || (uArt > 0.5 && aSorte.x >= 0.0) ? 1.0 : 0.0; vDepth = clip.w;
+  vN = R*aN; vPos = wp; vUV = aUV; vTeil = aTeil; vSeed = aSeed; vSpez = karte || (uArt > 0.5 && aSorte.x >= 0.0) ? 1.0 : 0.0; vDepth = clip.w; vOrd = o;
 }`;
 
   const FS_DINGE = `#version 300 es
 precision highp float;
-in vec3 vN; in vec3 vPos; in vec2 vUV; in float vTeil; in vec4 vSeed; in float vSpez; in float vDepth;
-uniform vec3 uCam, uBg;
+in vec3 vN; in vec3 vPos; in vec2 vUV; in float vTeil; in vec4 vSeed; in float vSpez; in float vDepth; in float vOrd;
+uniform vec3 uCam, uBg, uChartO;
 uniform float uArt;
 uniform vec2 uFog;
 out vec4 o;
@@ -273,32 +288,43 @@ void main(){
   vec3 H = normalize(L + V);
   vec3 col;
   if (uArt < 0.5) {
-    // Münze: Gold mit Glanzlicht, geprägtem Ring und geriffeltem Rand
-    float sp = pow(max(dot(N, H), 0.0), 42.0);
+    // Münze: Gold, in dem sich ein Studio spiegelt (heller Himmel, ein Lichtband, warmer Boden),
+    // dazu Glanzlicht, geprägter Ring und geriffelter Rand.
+    float sp = pow(max(dot(N, H), 0.0), 60.0);
     float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+    vec3 Rf = reflect(-V, N);
+    float himmel = smoothstep(-0.35, 0.85, Rf.y);
+    float band = exp(-pow((Rf.y - 0.30)*3.6, 2.0))*(0.6 + 0.4*sin(Rf.x*3.0 + 1.0));
+    vec3 spiegel = mix(vec3(0.36, 0.19, 0.04), vec3(1.0, 0.80, 0.36), himmel) + vec3(1.0, 0.95, 0.78)*band*0.42;
     float hell = smoothstep(-0.15, 0.95, dif*0.85 + 0.22*N.y + 0.18);
-    col = mix(vec3(0.42, 0.23, 0.05), vec3(0.97, 0.70, 0.25), hell);
+    col = mix(vec3(0.44, 0.24, 0.05), vec3(0.97, 0.70, 0.25), hell);
+    col = mix(col, spiegel, 0.50);
     if (vTeil < 0.5) {
       float r = length(vUV);
       float ring = smoothstep(0.78, 0.82, r) - smoothstep(0.92, 0.96, r);
       float mitte = 1.0 - smoothstep(0.50, 0.54, r);
-      col *= 1.0 + 0.14*ring + 0.07*mitte;
+      col *= 1.0 + 0.14*ring + 0.06*mitte;
     } else {
-      col *= 0.84 + 0.16*sin(vUV.x*14.0);
+      col *= 0.86 + 0.14*sin(vUV.x*14.0);
     }
-    col += vec3(1.0, 0.93, 0.72)*sp*0.85 + vec3(0.95, 0.62, 0.25)*fres*0.30;
+    col += vec3(1.0, 0.94, 0.76)*sp*0.9 + vec3(0.95, 0.62, 0.25)*fres*0.22;
   } else {
     // Blatt: Papier mit angedeuteten Zeilen; die sechs Themenkarten tragen einen farbigen Kopf
     float licht = 0.74 + 0.26*smoothstep(0.0, 0.9, dif*0.7 + 0.35);
     col = vec3(0.988, 0.980, 0.970)*licht;
     if (gl_FrontFacing) {
       float reihe = floor(vUV.y*13.0), f = fract(vUV.y*13.0);
-      float lang = 0.40 + 0.50*fract(sin(reihe*12.9898 + vSeed.x*78.233)*43758.5453);
+      float lang = 0.40 + 0.50*fract(sin(reihe*12.9898 + vSeed.w*78.233)*43758.5453);
       float text = step(0.28, f)*step(f, 0.62)*step(0.12, vUV.x)*step(vUV.x, 0.12 + 0.76*lang)*step(2.5, reihe)*step(reihe, 11.5);
       float kopf = step(0.12, vUV.x)*step(vUV.x, 0.62)*step(0.06, vUV.y)*step(vUV.y, 0.135);
       col = mix(col, vec3(0.66, 0.64, 0.68)*licht, text*0.75);
       col = mix(col, mix(vec3(0.10, 0.09, 0.12), vec3(0.94, 0.54, 0.17), vSpez), kopf);
     } else col *= 0.93;
+    // liegt das Blatt im Boden, wirft jede Säule einen weichen Schatten darauf
+    vec2 q = vPos.xz - uChartO.xz;
+    float sx = q.x - (clamp(floor(q.x/0.5 + 4.0), 0.0, 7.0) - 3.5)*0.5;
+    float sz = min(abs(q.y - 0.26), abs(q.y + 0.26));
+    col *= 1.0 - 0.34*vOrd*(1.0 - smoothstep(0.12, 0.46, length(vec2(sx, sz))));
   }
   col = mix(col, uBg, smoothstep(uFog.x, uFog.y, vDepth)*0.8);
   o = vec4(col, 1.0);
@@ -454,7 +480,21 @@ void main(){
   });
 
   let muenzen = null, blaetter = null;
-  const KARTEN = 6;                                    // die ersten sechs Blätter sind die Themenkarten
+  // Verteilt die Stücke gleichmäßig auf Bahnen (mehr Stücke auf den äußeren, überall derselbe Abstand).
+  function verteile(stuecke, dabei, bahnen, hoehe) {
+    const welche = [];
+    for (let i = 0; i < stuecke.length / 10; i++) if (dabei(i)) welche.push(i);
+    const summe = bahnen.reduce((a, r) => a + r, 0);
+    let n = 0;
+    bahnen.forEach((r, k) => {
+      const zahl = k === bahnen.length - 1 ? welche.length - n : Math.round(welche.length * r / summe);
+      for (let j = 0; j < zahl && n < welche.length; j++, n++) {
+        const i = welche[n] * 10;
+        stuecke[i] = r; stuecke[i + 1] = hoehe; stuecke[i + 2] = (j + k * 0.37) / zahl;
+      }
+    });
+  }
+  const KARTEN = 4;                                    // die ersten vier Blätter sind die Themenkarten
   function baueDinge() {
     const m = [];
     for (let r = 0; r < REIHEN; r++) for (let c = 0; c < SAEULEN; c++) for (let l = 0; l < HOCH[c]; l++) {
@@ -462,11 +502,13 @@ void main(){
       const reihenfolge = spaeter
         ? clamp((l - ANFANG[c]) / Math.max(1, HOCH[c] - ANFANG[c]) * 0.75 + c / (SAEULEN - 1) * 0.25)
         : clamp(c / (SAEULEN - 1) * 0.6 + l / 16 * 0.4);
-      m.push(zufall(), zufall(), zufall(), zufall(),
+      m.push(0, 0, 0, zufall(),
         saeuleX(c) + (zufall() - 0.5) * 0.012, BODEN + (l + 0.5) * DICKE, (r - (REIHEN - 1) / 2) * 0.52 + (zufall() - 0.5) * 0.012, reihenfolge,
         spaeter ? 1 : 0, 1);
     }
-    muenzen = form(gl.createVertexArray(), muenzForm(mobil ? 20 : 30), m);
+    // Die Münzen, die von Anfang an da sind, kreisen auf fünf Bahnen mit gleichem Abstand.
+    verteile(m, (i) => m[i * 10 + 8] === 0, [1.05, 1.38, 1.71, 2.04, 2.37], 0.0);
+    muenzen = form(gl.createVertexArray(), muenzForm(mobil ? 24 : 40), m);
 
     // Die Blätter ordnen sich zu einem Boden aus zwölf mal fünf Kacheln, auf dem die Säulen stehen.
     const b = [], SP = 12, ZE = 5;
@@ -476,8 +518,10 @@ void main(){
     const vorn = plaetze.filter((q) => q[2] > 0.9).sort((a, c) => Math.abs(a[0]) - Math.abs(c[0])).slice(0, KARTEN);
     const rest = plaetze.filter((q) => !vorn.includes(q));
     [...vorn, ...rest].forEach((q, n) => {
-      b.push(zufall(), zufall(), zufall(), zufall(), q[0], q[1], q[2], q[3], n < KARTEN ? n : -1, n < KARTEN ? 1.55 : 1);
+      b.push(0, 0, 0, zufall(), q[0], q[1], q[2], q[3], n < KARTEN ? n : -1, n < KARTEN ? 1.55 : 1);
     });
+    // Die Blätter kreisen auf drei eigenen Bahnen über den Münzen.
+    verteile(b, () => true, [1.25, 1.85, 2.45], 0.5);
     blaetter = form(gl.createVertexArray(), blattForm(), b);
   }
 
@@ -621,7 +665,7 @@ void main(){
       const v = U[k];
       if (typeof v === 'number') gl.uniform1f(ort, v);
       else if (v.length === 2) gl.uniform2fv(ort, v);
-      else if (v.length === 3 || v.length === 18) gl.uniform3fv(ort, v);
+      else if (v.length === 3 || v.length === 12) gl.uniform3fv(ort, v);
       else if (v.length === 4) gl.uniform4fv(ort, v);
       else if (v.length === 9) gl.uniformMatrix3fv(ort, false, v);
       else if (v.length === 16) gl.uniformMatrix4fv(ort, false, v);
@@ -705,6 +749,7 @@ void main(){
     const links = (mx - (breit ? R.x : rand)) / sWirbel, rechts = (cssB - rand - platzMarke - mx) / sWirbel;
     const hoehe = Math.min(my - R.y, R.y + R.h - my) / sWirbel;
     const ry = Math.max(0.8, hoehe * 0.86), rx = clamp((links + rechts) / 2 * 0.9, 0.8, ry * 1.55);
+    const bahn = Math.min(rx / 2.62, ry / 2.12);                 // die äußerste Bahn (2,45) samt Blatt passt in den Rahmen
     const mitte = [clamp((rechts - links) / 2, -0.6, 0.6) * 0.9, 0.05, 0];
 
     const schweben = ruhig ? 0 : 1 - drehung;
@@ -716,19 +761,19 @@ void main(){
     // Die sechs Themenkarten stehen im Wirbel ruhig am rechten Rand, jede mit ihrer Beschriftung.
     const karten = new Float32Array(KARTEN * 3);
     for (let i = 0; i < KARTEN; i++) {
-      const a = (62 - i * 24.8) * Math.PI / 180;
-      karten[i * 3] = mitte[0] + Math.cos(a) * rx * 0.50 + rx * 0.50;
-      karten[i * 3 + 1] = mitte[1] + Math.sin(a) * ry * 0.98 + 0.035 * Math.sin(zeit * 0.9 + i * 1.3);
-      karten[i * 3 + 2] = 0.9;
+      const a = (51 - i * 34) * Math.PI / 180;
+      karten[i * 3] = mitte[0] + Math.cos(a) * rx * 0.42 + rx * 0.60;
+      karten[i * 3 + 1] = mitte[1] + Math.sin(a) * ry * 1.02 + 0.035 * Math.sin(zeit * 0.9 + i * 1.3);
+      karten[i * 3 + 2] = 1.3;
     }
 
     const g = grundBei(p);
     const bg = [0, 1, 2].map((i) => (g.hell[i] * 0.45 + g.tief[i] * 0.55) / 255);
     const gemeinsam = {
       uPV: PV, uTime: zeit, uDreh: p * 16, uOrigin: mitte, uWirbel: [rx, ry, rx], uChartO: SCHAUBILD,
-      uGrow: zeichnen, uPx: pxProEinheit, uCam: cam, uBg: bg, uFog: [D + 2.2, D + 8],
+      uGrow: zeichnen, uPx: pxProEinheit, uCam: cam, uBg: bg, uFog: [D + 2.2, D + 8], uBahn: bahn,
     };
-    Z.masse = { rahmen: R, modus: Z.modus, massstab, abstand: D, wirbel: [rx, ry] };
+    Z.masse = { rahmen: R, modus: Z.modus, massstab, abstand: D, wirbel: [rx, ry], bahn };
 
     gl.viewport(0, 0, W, H);
     gl.clearColor(0, 0, 0, 0);
