@@ -18,7 +18,9 @@
   // Der Knopf „Entwurf“ zum Ausfüllen erscheint nur bei dir: beim Öffnen von der Festplatte, in der
   // lokalen Vorschau oder mit ?entwurf in der Adresse. Besucher im Netz sehen ihn nie.
   const lokal = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-  const entwurf = !frage.has('fertig') && (lokal || frage.has('entwurf'));
+  // In der weitergegebenen Einzeldatei (werkzeug/einzeldatei.py) ist er ebenfalls aus.
+  const weitergabe = document.documentElement.hasAttribute('data-weitergabe');
+  const entwurf = !frage.has('fertig') && !weitergabe && (lokal || frage.has('entwurf'));
 
   function angabe(k) {
     const f = I.felder[k]; if (!f) return { wert: '', stand: 'ok', leer: true };
