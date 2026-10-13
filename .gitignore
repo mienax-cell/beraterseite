@@ -1,0 +1,10 @@
+# Bleibt auf dem Rechner und geht nicht zu GitHub:
+
+# das Originalfoto
+quelle/
+
+# interne Notizen
+doku/
+
+# Prüfbilder und Prüfskripte
+werkzeug/pruef/

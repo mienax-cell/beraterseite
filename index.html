@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Max · Vermögensberatung</title>
+<meta name="description" content="Absichern, vorsorgen, Vermögen aufbauen – als ein Plan statt als Stapel Verträge.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ece4e1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317151b'/%3E%3Cpath d='M16 7v18M7 16h18' stroke='%23f08a2c' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+/* ============================================================== Grundmaße
+   Eine Schriftleiter, ein Spaltmaß, ein Seitenrand. Alles auf der Seite nimmt
+   seine Größe von hier – deshalb stehen Kanten und Zeilen auf einer Linie. */
+:root{
+  --tinte:#17151b; --tinte-2:#57515c; --tinte-3:#6e6874;
+  --papier:#f5f2ef; --weiss:#fffdfb; --linie:rgba(23,21,27,.13);
+  --glut:#f08a2c; --kupfer:#a65c16;
+  --schrift:"Segoe UI Variable Display","Segoe UI Variable",system-ui,-apple-system,"SF Pro Display","Helvetica Neue",Roboto,Arial,sans-serif;
+  --kursiv:"Sitka Display","Sitka Heading","Sitka","Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+  --s-etikett:.75rem;   /* kleine Schilder in Großbuchstaben */
+  --s-klein:.875rem;    /* Quellen, Hinweise */
+  --s-text:1rem;        /* Fließtext */
+  --s-lauf:1.125rem;    /* Einleitungen */
+  --s-titel:1.4rem;     /* Karten, Schritte, Fragen */
+  --rand:clamp(20px,5.5vw,92px);
+  --innen:max(var(--rand),calc((100vw - 1180px)/2));   /* linke und rechte Kante der Inhaltsspalte */
+  --spalt:clamp(1rem,2.4vw,2.2rem);
+  --weit:clamp(1.5rem,5vw,5rem);
+  --schwung:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:5.5rem;-webkit-text-size-adjust:100%}
+html:has(dialog[open]),html.blatt-offen{overflow:hidden}
+body{margin:0;background:var(--papier);color:var(--tinte);font-family:var(--schrift);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:clip}
+h1,h2,h3,p,ol,ul,figure,dl,dd,fieldset{margin:0}
+ol,ul{padding:0;list-style:none}
+fieldset{border:0;padding:0;min-width:0}
+a{color:inherit}
+em{font-family:var(--kursiv);font-style:italic;font-weight:400;letter-spacing:-.01em}
+button,input,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--tinte);outline-offset:3px;border-radius:4px}
+#rechner :focus-visible,.kopfzeile.auf-dunkel :focus-visible{outline-color:var(--glut)}
+::selection{background:var(--glut);color:var(--tinte)}
+
+/* ---------- kleine Bausteine ---------- */
+.schild{display:inline-block;background:var(--tinte);color:var(--weiss);font-size:var(--s-etikett);letter-spacing:.12em;text-transform:uppercase;padding:.28rem .52rem;border-radius:3px;line-height:1.2}
+.schild.hell{background:rgba(255,255,255,.14)}
+.knopf{display:inline-flex;align-items:center;gap:.65rem;border-radius:999px;padding:.42rem .45rem .42rem 1.1rem;font-size:var(--s-klein);text-decoration:none;border:0;cursor:pointer;white-space:nowrap;transition:transform .25s var(--schwung)}
+.knopf i{width:1.9rem;height:1.9rem;border-radius:50%;display:grid;place-items:center;font-style:normal;transition:transform .3s var(--schwung)}
+.knopf:hover{transform:translateY(-1px)}
+.knopf:hover i{transform:rotate(45deg)}
+.knopf.hell{background:var(--weiss);color:var(--tinte);box-shadow:0 0 0 1px rgba(23,21,27,.07)}
+.knopf.hell i{background:var(--tinte);color:var(--weiss)}
+.knopf.dunkel{background:var(--tinte);color:var(--weiss)}
+.knopf.dunkel i{background:var(--glut);color:var(--tinte)}
+
+/* ---------- Kopfzeile ---------- */
+.kopfzeile{position:fixed;z-index:50;inset:0 0 auto 0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;padding:14px var(--innen);pointer-events:none;color:var(--tinte);transition:color .3s,background .3s,box-shadow .3s,padding .3s}
+.kopfzeile>*{pointer-events:auto}
+/* unter der Bühne bekommt sie einen ruhigen Balken, damit kein Inhalt durch Logo und Menü läuft */
+.kopfzeile.fest{background:rgba(245,242,239,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--linie);padding-block:9px;pointer-events:auto}
+.kopfzeile.fest.auf-dunkel{background:rgba(23,21,27,.9);box-shadow:0 1px 0 rgba(255,255,255,.1)}
+.kopfzeile.auf-dunkel{color:var(--weiss)}
+.logo{display:flex;gap:.7rem;align-items:center;text-decoration:none;font-size:var(--s-klein);line-height:1.15;justify-self:start}
+.logo svg{flex:none}
+.logo small{display:block;opacity:.66;font-size:var(--s-etikett);margin-top:.1rem}
+.pille{display:flex;gap:.1rem;background:rgba(23,21,27,.9);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:999px;padding:.26rem}
+.pille a{color:rgba(255,255,255,.76);font-size:.8rem;padding:.4rem .76rem;border-radius:999px;text-decoration:none;transition:background .2s,color .2s}
+.pille a:hover,.pille a.an{background:rgba(255,255,255,.16);color:#fff}
+.kopfzeile.fest.auf-dunkel .pille{background:rgba(255,255,255,.1)}
+.kopfzeile .knopf{justify-self:end}
+
+/* ================================================================== Bühne */
+#reise{position:relative;height:640vh}
+.buehne{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:radial-gradient(120% 95% at var(--mx,58%) var(--my,42%),var(--hell,#ece4e1) 0%,var(--tief,#d5c8c8) 100%)}
+#szene{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .7s}
+.szene-bereit #szene{opacity:1}
+.kern-glut{position:absolute;left:0;top:0;width:10px;height:10px;border-radius:50%;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(255,236,196,.95) 0%,rgba(255,170,70,.8) 14%,rgba(255,128,36,.32) 38%,rgba(255,120,30,0) 68%);mix-blend-mode:screen;will-change:transform,opacity}
+/* breit: Text links, Motiv rechts */
+.kapitel{position:absolute;left:var(--innen);top:50%;width:min(31rem,36vw);transform:translateY(calc(-50% + var(--versatz,0px)));opacity:0;visibility:hidden;will-change:opacity,transform}
+.kapitel h1,.kapitel h2{font-size:clamp(1.5rem,min(3.55vw,7.4vh),3.6rem);line-height:1.04;font-weight:340;letter-spacing:-.028em;margin:1rem 0 1.1rem;text-wrap:balance}
+.kapitel .lauf{font-size:clamp(.875rem,min(1.06vw,2.5vh),1.125rem);max-width:27rem}
+.kapitel .zeile{display:flex;align-items:center;gap:1.3rem;margin-top:clamp(.9rem,3vh,1.6rem);flex-wrap:wrap}
+.scrollhinweis{display:inline-flex;align-items:center;gap:.6rem;font-size:var(--s-etikett);letter-spacing:.12em;text-transform:uppercase;color:var(--tinte-2)}
+.scrollhinweis::before{content:"";width:34px;height:1px;background:currentColor;transform-origin:left;animation:zieh 2.2s var(--schwung) infinite}
+@keyframes zieh{0%{transform:scaleX(0)}55%{transform:scaleX(1)}100%{transform:scaleX(1);opacity:0}}
+.themenzeile{display:none}
+.themenzeile li{font-size:var(--s-etikett);line-height:1.2;padding:.32rem .62rem;border-radius:999px;background:rgba(23,21,27,.88);color:var(--weiss)}
+/* hoch: Motiv oben, Text unten (schmale und fast quadratische Fenster, Handy) */
+.buehne[data-modus="hoch"] .kapitel{top:auto;bottom:max(5.5vh,34px);bottom:max(5.5svh,34px);right:var(--innen);width:auto;max-width:35rem;transform:translateY(var(--versatz,0px))}
+.buehne[data-modus="hoch"] .kapitel h1,.buehne[data-modus="hoch"] .kapitel h2{font-size:clamp(1.7rem,5.4vw,2.7rem);margin:.75rem 0 .7rem}
+.buehne[data-modus="hoch"] .kapitel .lauf{font-size:.95rem;line-height:1.5;max-width:32rem}
+.buehne[data-modus="hoch"] .kapitel .zeile{margin-top:1.1rem}
+.buehne[data-modus="hoch"] .scrollhinweis,.buehne[data-marken="aus"] .marke{display:none}
+.buehne[data-marken="aus"] .themenzeile{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.9rem}
+/* Fortschritt: fünf Striche am rechten Rand */
+.leiste{position:absolute;right:calc(var(--rand)*.42);top:50%;transform:translateY(-50%);display:grid;gap:11px;justify-items:end}
+.leiste li{width:12px;height:2px;border-radius:2px;background:var(--tinte);opacity:.26;transition:width .4s var(--schwung),opacity .4s}
+.leiste li.an{width:30px;opacity:.9}
+.buehne[data-modus="hoch"] .leiste{right:9px}
+.marke{position:absolute;left:0;top:0;white-space:nowrap;background:rgba(23,21,27,.88);color:var(--weiss);font-size:var(--s-etikett);letter-spacing:.02em;padding:.3rem .58rem;border-radius:5px;opacity:0;pointer-events:none;will-change:transform,opacity}
+.marke b{font-weight:400;opacity:.55;margin-right:.45rem}
+.ladehinweis{position:absolute;left:var(--mx,50%);top:var(--my,50%);transform:translate(-50%,-50%);font-size:var(--s-etikett);letter-spacing:.12em;text-transform:uppercase;color:var(--tinte-2);transition:opacity .5s}
+.szene-bereit .ladehinweis,.ohne-3d .ladehinweis{opacity:0}
+.standbild #szene{transition:none}
+.standbild .ladehinweis{display:none}
+.standbild .leiste li,.standbild .zeig,.standbild .schritt::before,.standbild .schritt::after{transition:none}
+/* ohne 3D: die Kapitel stehen einfach untereinander */
+.ohne-3d #reise{height:auto}
+.ohne-3d .buehne{position:static;height:auto;padding:9rem var(--innen) 4rem;display:grid;gap:5rem}
+.ohne-3d #szene,.ohne-3d .leiste,.ohne-3d .marke,.ohne-3d .kern-glut{display:none}
+.ohne-3d .kapitel,.ohne-3d .buehne[data-modus] .kapitel{position:static;transform:none;opacity:1!important;visibility:visible!important;width:min(38rem,100%);max-width:none}
+
+/* ============================================================= Abschnitte */
+.abschnitt{position:relative;padding:clamp(4.5rem,10vw,8.5rem) var(--innen)}
+.kopf2{margin-bottom:clamp(2.4rem,5vw,4.2rem)}
+.gross{font-size:clamp(2.1rem,4.7vw,4.3rem);line-height:1.02;font-weight:340;letter-spacing:-.032em;margin-top:1.1rem;text-wrap:balance}
+.lauf{font-size:var(--s-lauf);line-height:1.55;color:var(--tinte-2);text-wrap:pretty}
+.kopf2 .lauf{max-width:34rem;margin-top:1.4rem}
+.zwei{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:var(--weit)}
+.zeig{opacity:0;transform:translateY(24px);transition:opacity .9s var(--schwung) calc(var(--i,0)*90ms),transform .9s var(--schwung) calc(var(--i,0)*90ms)}
+.zeig.da{opacity:1;transform:none}
+
+/* Zahlen */
+.zahlen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--spalt)}
+.zahl{border-top:1px solid var(--tinte);padding-top:1.1rem;display:flex;flex-direction:column;gap:.55rem}
+.zahl strong{font-size:clamp(2.2rem,3.6vw,3.3rem);font-weight:320;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.zahl h3{font-size:var(--s-text);font-weight:600}
+.zahl p{font-size:var(--s-text);color:var(--tinte-2);line-height:1.5}
+.zahl small{font-size:var(--s-klein);color:var(--tinte-3);line-height:1.4;margin-top:auto;padding-top:.6rem}
+.fussnote{margin-top:2.2rem;font-size:var(--s-klein);color:var(--tinte-3);max-width:44rem}
+
+/* Ablauf */
+#weg,#ueber{background:var(--weiss)}
+.schritte{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--spalt);counter-reset:s}
+.schritt{counter-increment:s;position:relative;padding-top:2.6rem}
+.schritt::before{content:"";position:absolute;left:0;top:.55rem;height:1px;width:100%;background:linear-gradient(90deg,var(--tinte) 0%,var(--tinte) 60%,var(--glut) 100%);transform-origin:left;transform:scaleX(0);transition:transform 1.1s var(--schwung) calc(var(--i,0)*140ms + 150ms)}
+.schritt::after{content:"";position:absolute;right:-3px;top:.55rem;width:7px;height:7px;margin-top:-3px;border-radius:50%;background:var(--glut);box-shadow:0 0 0 4px rgba(240,138,44,.18),0 0 18px 4px rgba(240,138,44,.55);opacity:0;transition:opacity .5s calc(var(--i,0)*140ms + 1000ms)}
+.schritt.da::before{transform:scaleX(1)}
+.schritt.da::after{opacity:1}
+.nr{font-family:var(--kursiv);font-style:italic;font-size:var(--s-text);color:var(--kupfer)}
+.schritt .nr::before{content:"0" counter(s)}
+.schritt h3,.karte h3{font-size:var(--s-titel);font-weight:380;letter-spacing:-.02em;line-height:1.15}
+.schritt h3{margin:.35rem 0 .6rem}
+.schritt p{font-size:var(--s-text);color:var(--tinte-2)}
+.schritt .eck{display:block;margin-top:.7rem;font-size:var(--s-klein);color:var(--tinte)}
+
+/* Rechner */
+#rechner{background:var(--tinte);color:var(--weiss)}
+#rechner .lauf{color:rgba(255,253,251,.7)}
+.regler{display:grid;gap:1.1rem;align-content:start}
+.regler label{display:grid;gap:.1rem}
+.regler .kopf{display:flex;justify-content:space-between;align-items:baseline;font-size:var(--s-klein);color:rgba(255,253,251,.66)}
+.regler output{font-size:var(--s-titel);font-weight:340;letter-spacing:-.02em;color:var(--weiss);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;cursor:pointer;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--glut) var(--f,50%),rgba(255,255,255,.24) var(--f,50%))}
+input[type=range]::-moz-range-track{height:2px;background:rgba(255,255,255,.24)}
+input[type=range]::-moz-range-progress{height:2px;background:var(--glut)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-8px;border-radius:50%;background:var(--weiss);border:0;box-shadow:0 0 0 5px rgba(240,138,44,.22),0 0 16px rgba(240,138,44,.6)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--weiss);border:0;box-shadow:0 0 0 5px rgba(240,138,44,.22),0 0 16px rgba(240,138,44,.6)}
+.regler label.schalter{display:flex;align-items:center;gap:.75rem;min-height:44px;font-size:var(--s-klein);color:rgba(255,253,251,.8);cursor:pointer}
+.schalter input{position:absolute;opacity:0}
+.schalter span{flex:none;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,.22);position:relative;transition:background .25s}
+.schalter span::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:var(--weiss);transition:transform .25s var(--schwung)}
+.schalter input:checked+span{background:var(--glut)}
+.schalter input:checked+span::after{transform:translateX(16px)}
+.schalter input:focus-visible+span{outline:2px solid var(--glut);outline-offset:3px}
+.ergebnis{display:flex;flex-direction:column;gap:1.3rem;min-width:0}
+.summe{display:grid;grid-template-columns:auto auto 1fr;gap:.9rem 2.4rem;align-items:end}
+.summe div{display:grid;gap:.2rem}
+.summe span{font-size:var(--s-etikett);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,253,251,.62)}
+.summe b{font-weight:320;font-size:var(--s-titel);letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.summe .haupt b{font-size:clamp(2.6rem,5.2vw,4.4rem);letter-spacing:-.045em;line-height:1}
+.summe .ertrag b{color:var(--glut)}
+.beispiel{font-size:var(--s-klein);color:rgba(255,253,251,.62);margin-top:-.5rem}
+.kurve{position:relative;flex:1;min-height:260px;border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(255,255,255,.14)}
+.kurve canvas{position:absolute;inset:0;width:100%;height:100%}
+.spaeter{font-size:var(--s-lauf);color:rgba(255,253,251,.86);max-width:38rem}
+.spaeter b{color:var(--glut);font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kleingedruckt{font-size:var(--s-klein);color:rgba(255,253,251,.62);max-width:46rem;margin-top:2.4rem;line-height:1.5}
+
+/* Themen */
+.karten{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--spalt)*.6)}
+.karte{background:var(--weiss);border-radius:18px;padding:1.6rem 1.6rem 1.5rem;display:flex;flex-direction:column;gap:.7rem;position:relative;overflow:hidden;transition:transform .45s var(--schwung),box-shadow .45s,opacity .9s var(--schwung) calc(var(--i,0)*90ms)}
+.karte.da:hover{transform:translateY(-4px);box-shadow:0 24px 50px -28px rgba(23,21,27,.4)}
+.karte .faden{position:absolute;right:1.4rem;top:1.55rem;width:74px;height:1px;background:linear-gradient(90deg,transparent,var(--tinte-3));transition:width .5s var(--schwung)}
+.karte .faden::after{content:"";position:absolute;right:-3px;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--glut);box-shadow:0 0 14px 3px rgba(240,138,44,.55)}
+.karte:hover .faden{width:120px}
+.karte p{font-size:var(--s-text);color:var(--tinte-2)}
+.karte .frage{margin-top:auto;padding-top:.9rem;border-top:1px solid var(--linie);font-family:var(--kursiv);font-style:italic;font-size:var(--s-lauf);line-height:1.35;color:var(--tinte);min-height:4.1rem}
+
+/* Über mich */
+.portrait{position:relative;aspect-ratio:4/5;border-radius:28px;overflow:hidden;background:radial-gradient(110% 90% at 50% 30%,#ece4e1,#cdbdc0);align-self:center}
+.portrait canvas{position:absolute;left:47.5%;bottom:-13%;height:100%;transform:translateX(-50%)}
+.ueber>div{align-self:center}
+.ueber .gross{margin-bottom:1.6rem}
+.ueber .text{max-width:34rem;white-space:pre-line}
+.eckdaten{margin-top:2.2rem;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--spalt);border-top:1px solid var(--linie);padding-top:1.3rem}
+.eckdaten dt{font-size:var(--s-etikett);letter-spacing:.12em;text-transform:uppercase;color:var(--tinte-3);margin-bottom:.3rem}
+.eckdaten dd{font-size:var(--s-text)}
+
+/* Fragen */
+.fragen>div:first-child{position:sticky;top:6.5rem;align-self:start}
+details{border-top:1px solid var(--linie)}
+details:last-child{border-bottom:1px solid var(--linie)}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:1.5rem;padding:1.25rem 0;font-size:var(--s-titel);font-weight:380;letter-spacing:-.015em;line-height:1.2}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";flex:none;width:2.2rem;height:2.2rem;border-radius:50%;border:1px solid var(--linie);display:grid;place-items:center;font-weight:300;font-size:1.2rem;transition:transform .35s var(--schwung),background .25s,color .25s}
+details[open] summary::after{transform:rotate(45deg);background:var(--tinte);color:var(--weiss)}
+details p{padding:0 3.5rem 1.6rem 0;font-size:var(--s-text);color:var(--tinte-2);max-width:40rem;white-space:pre-line}
+
+/* Kontakt */
+#kontakt{padding-top:1rem}
+.kontakt{border-radius:32px;padding:clamp(1.6rem,5vw,4.5rem);background:radial-gradient(120% 110% at 80% 10%,#e3e6ec 0%,#c5c9d4 55%,#b9b4c0 100%);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--weit);position:relative;overflow:hidden}
+.kontakt::before{content:"";position:absolute;right:-8%;top:-30%;width:46%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(255,170,70,.5),rgba(255,140,40,0) 65%);pointer-events:none}
+.kontakt>*{position:relative}
+.kontakt .gross{font-size:clamp(2.4rem,5.4vw,4.8rem)}
+.kontakt .lauf{margin-top:1.3rem;color:var(--tinte)}
+.wege{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:2rem}
+.formular{background:rgba(255,253,251,.74);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-radius:22px;padding:clamp(1.2rem,2.4vw,2rem);display:grid;gap:1.1rem;align-content:start}
+.formular label,.formular legend{display:grid;gap:.35rem;font-size:var(--s-etikett);letter-spacing:.12em;text-transform:uppercase;color:var(--tinte-2);padding:0}
+.formular legend{margin-bottom:.55rem}
+.formular input[type=text],.formular textarea{border:0;border-bottom:1px solid rgba(23,21,27,.32);background:transparent;padding:.55rem 0;font-size:var(--s-lauf);letter-spacing:0;text-transform:none;color:var(--tinte);border-radius:0;outline:0;transition:border-color .2s,box-shadow .2s}
+.formular input[type=text]:focus-visible,.formular textarea:focus-visible{border-color:var(--tinte);box-shadow:0 1px 0 var(--tinte)}
+.formular textarea{resize:vertical;min-height:4.2rem}
+.wahl{display:flex;flex-wrap:wrap;gap:.4rem}
+.wahl label{display:inline-flex;cursor:pointer;text-transform:none;letter-spacing:0}
+.wahl input{position:absolute;opacity:0}
+.wahl span{font-size:var(--s-klein);padding:.6rem .9rem;border-radius:999px;border:1px solid rgba(23,21,27,.28);color:var(--tinte);transition:background .2s,color .2s,border-color .2s}
+.wahl input:checked+span{background:var(--tinte);color:var(--weiss);border-color:var(--tinte)}
+.wahl input:focus-visible+span{outline:2px solid var(--tinte);outline-offset:2px}
+.formular .unten{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.formular .unten small{font-size:var(--s-klein);color:var(--tinte-2);max-width:19rem;line-height:1.4}
+
+/* Fuß */
+.fuss{padding:1.6rem var(--innen) 2rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem 1.5rem;flex-wrap:wrap;font-size:var(--s-klein);color:var(--tinte-2)}
+.fuss nav{display:flex;gap:0 1.4rem;flex-wrap:wrap}
+.fuss button{background:none;border:0;padding:.75rem 0;cursor:pointer;color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--linie)}
+.fuss button:hover{color:var(--tinte);text-decoration-color:currentColor}
+.fuss .stand{color:var(--tinte-3)}
+
+/* ---------- Entwurfsknopf, Blätter, Schublade (nur bei dir sichtbar) ---------- */
+.entwurf{position:fixed;z-index:60;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:none;align-items:center;gap:.5rem;background:rgba(23,21,27,.92);color:var(--weiss);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:.6rem .95rem .6rem .8rem;font-size:var(--s-etikett);cursor:pointer;box-shadow:0 10px 26px -10px rgba(23,21,27,.55);white-space:nowrap}
+.entwurf-an .entwurf{display:inline-flex}
+.entwurf i{width:6px;height:6px;border-radius:50%;background:var(--glut);box-shadow:0 0 10px 2px rgba(240,138,44,.7)}
+dialog{border:0;padding:0;color:var(--tinte);background:var(--papier);max-width:none;max-height:none}
+dialog::backdrop{background:rgba(23,21,27,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+dialog.blatt{width:min(46rem,calc(100vw - 2rem));max-height:min(86vh,60rem);border-radius:22px;overflow:auto;overscroll-behavior:contain}
+dialog.schub{position:fixed;inset:0 0 0 auto;margin:0;width:min(34rem,100vw);height:100vh;height:100dvh;overflow:auto;overscroll-behavior:contain}
+.blattkopf{position:sticky;top:0;z-index:2;background:var(--papier);display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem 1.7rem;border-bottom:1px solid var(--linie)}
+.blattkopf h2{font-size:var(--s-titel);font-weight:380;letter-spacing:-.02em}
+.zu{width:2.75rem;height:2.75rem;border-radius:50%;border:1px solid var(--linie);background:none;cursor:pointer;font-size:1.1rem;line-height:1}
+.blattleib{padding:1.6rem 1.7rem 2rem;display:grid;gap:1rem;font-size:var(--s-text)}
+.blattleib h3{font-size:var(--s-etikett);letter-spacing:.12em;text-transform:uppercase;color:var(--tinte-3);font-weight:600;margin-top:.8rem}
+.blattleib p{color:var(--tinte-2)}
+.geruest{background:rgba(240,138,44,.14);border-left:2px solid var(--glut);padding:.8rem 1rem;border-radius:0 8px 8px 0;font-size:var(--s-klein);color:var(--tinte)!important}
+html:not(.entwurf-an) .blatt .geruest{display:none}
+.angabe{display:grid;gap:.4rem;padding:.9rem 0;border-top:1px solid var(--linie)}
+.angabe .oben{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.angabe .oben b{font-weight:600}
+.angabe small{color:var(--tinte-2);font-size:var(--s-klein);line-height:1.4}
+.angabe input[type=text],.angabe textarea{width:100%;border:1px solid rgba(23,21,27,.24);border-radius:10px;background:var(--weiss);padding:.65rem .75rem;font-size:1rem}
+.angabe textarea{min-height:6.5rem;resize:vertical}
+.zustand{font-size:var(--s-etikett);letter-spacing:.1em;text-transform:uppercase;padding:.2rem .45rem;border-radius:4px;white-space:nowrap}
+.zustand.offen{background:rgba(240,138,44,.2);color:var(--kupfer)}
+.zustand.pruefen{background:rgba(23,21,27,.08);color:var(--tinte-2)}
+.zustand.ok{background:rgba(40,130,90,.14);color:#1f6a48}
+.passt{display:inline-flex;align-items:center;gap:.5rem;min-height:2.2rem;font-size:var(--s-klein);color:var(--tinte-2);cursor:pointer}
+.schubfuss{position:sticky;bottom:0;background:var(--papier);border-top:1px solid var(--linie);padding:1rem 1.7rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.schubfuss .knopf{padding:.7rem 1.1rem}
+.schubfuss .still{background:none;box-shadow:0 0 0 1px var(--linie)}
+.schubfuss output{font-size:var(--s-klein);color:var(--tinte-2);flex-basis:100%}
+
+/* ================================================================ schmaler */
+@media (max-width:1199px){
+  .zahlen,.schritte{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:2.6rem}
+}
+@media (max-width:1079px){
+  .pille{display:none}
+  .kopfzeile{grid-template-columns:1fr auto}
+  .karten{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:899px){
+  .rechner,.fragen,.kontakt{grid-template-columns:minmax(0,1fr)}
+  .fragen>div:first-child{position:static}
+  .ueber{grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr)}
+  .eckdaten{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:639px){
+  .zahlen,.schritte,.karten,.ueber{grid-template-columns:minmax(0,1fr)}
+  .portrait{max-width:20rem}
+  .logo small{display:none}
+  details p{padding-right:0}
+  .summe{grid-template-columns:1fr 1fr}
+  .summe .haupt{grid-column:1/-1}
+  .karte .frage{min-height:0}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .zeig{opacity:1;transform:none;transition:none}
+  .scrollhinweis::before{animation:none}
+}
+</style>
+</head>
+<body id="oben">
+
+<header class="kopfzeile" id="kopfzeile">
+  <a class="logo" href="#oben">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M13 3v20M3 13h20" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="13" cy="13" r="2.6" fill="#f08a2c"/></svg>
+    <span><span data-feld="vorname"></span> <span data-feld="nachname"></span><small data-feld="titel"></small></span>
+  </a>
+  <nav class="pille" aria-label="Seite">
+    <a href="#zahlen">Zahlen</a><a href="#weg">Ablauf</a><a href="#rechner">Rechner</a><a href="#themen">Themen</a><a href="#ueber">Über mich</a><a href="#fragen">Fragen</a><a href="#kontakt">Kontakt</a>
+  </nav>
+  <a class="knopf hell" href="#kontakt" data-termin>Termin <i aria-hidden="true">↗</i></a>
+</header>
+
+<main>
+<!-- ============================================================ Bühne -->
+<section id="reise" aria-label="Wie ich arbeite">
+  <div class="buehne" id="buehne">
+    <canvas id="szene" aria-hidden="true"></canvas>
+    <div class="kern-glut" id="kernglut" aria-hidden="true"></div>
+
+    <article class="kapitel" data-von="-1" data-bis="0.105">
+      <p class="schild"><span data-feld="titel"></span> · persönlich</p>
+      <h1>Ich bin <span data-feld="vorname"></span>.<br>Ich bringe <em>Ordnung</em> in deine Finanzen.</h1>
+      <p class="lauf">Absichern, vorsorgen, Vermögen aufbauen – als ein Plan statt als Stapel Verträge.</p>
+      <div class="zeile">
+        <a class="knopf dunkel" href="#kontakt" data-termin>Erstgespräch vereinbaren <i aria-hidden="true">↗</i></a>
+        <span class="scrollhinweis">Scrollen</span>
+      </div>
+    </article>
+
+    <article class="kapitel" data-von="0.125" data-bis="0.285">
+      <p class="schild">01 · Zuhören</p>
+      <h2>Erst verstehen, wo du <em>stehst</em>.</h2>
+      <p class="lauf">Bevor ich etwas empfehle, schaue ich mir deine Lage an: Einkommen, Ausgaben, Verträge, Pläne.</p>
+    </article>
+
+    <article class="kapitel" data-von="0.315" data-bis="0.505">
+      <p class="schild">02 · Sortieren</p>
+      <h2>Sechs Fäden, die meist <em>lose</em> herumliegen.</h2>
+      <p class="lauf">Jeder für sich ist einfach. Schwierig wird es, weil sie zusammenhängen.</p>
+      <ul class="themenzeile" id="themenzeile"></ul>
+    </article>
+
+    <article class="kapitel" data-von="0.545" data-bis="0.715">
+      <p class="schild">03 · Bündeln</p>
+      <h2>Aus vielen Verträgen wird <em>ein Plan</em>.</h2>
+      <p class="lauf">Was doppelt ist, kann weg. Was fehlt, zeige ich dir. Was passt, bleibt.</p>
+    </article>
+
+    <article class="kapitel" data-von="0.765" data-bis="2">
+      <p class="schild">04 · Dranbleiben</p>
+      <h2>Und dann bleibe ich <em>dran</em>.</h2>
+      <p class="lauf">Ein Plan ist kein Papier für die Schublade. Einmal im Jahr schauen wir gemeinsam drauf – und immer, wenn sich bei dir etwas ändert.</p>
+      <div class="zeile"><a class="knopf dunkel" href="#kontakt" data-termin>Erstgespräch vereinbaren <i aria-hidden="true">↗</i></a></div>
+    </article>
+
+    <ol class="leiste" id="leiste" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li></ol>
+    <div id="marken" aria-hidden="true"></div>
+    <p class="ladehinweis" aria-hidden="true">Einen Moment …</p>
+  </div>
+</section>
+
+<!-- =========================================================== Zahlen -->
+<section class="abschnitt" id="zahlen">
+  <div class="kopf2 zeig">
+    <p class="schild">Zahlen</p>
+    <h2 class="gross">Vier Zahlen, die du <em>kennen</em> solltest.</h2>
+    <p class="lauf">Alle vier stammen von der Rentenversicherung – mit Fundstelle zum Nachlesen.</p>
+  </div>
+  <div class="zahlen" id="zahlenliste"></div>
+  <p class="fussnote zeig">Zur Einordnung: Eine einzelne Rente ist nicht das ganze Einkommen im Alter. Partner, Betriebsrente und eigenes Vermögen stehen in dieser Statistik nicht. Abgerufen im Oktober 2026.</p>
+</section>
+
+<!-- =========================================================== Ablauf -->
+<section class="abschnitt" id="weg">
+  <div class="kopf2 zeig">
+    <p class="schild">Ablauf</p>
+    <h2 class="gross">Vier Schritte. <em>Kein</em> Druck.</h2>
+    <p class="lauf">Du entscheidest nach jedem Schritt, ob es einen nächsten gibt.</p>
+  </div>
+  <ol class="schritte">
+    <li class="schritt zeig" style="--i:0"><span class="nr"></span><h3>Zuhören</h3><p>Am Telefon, per Video oder bei einem Kaffee. Du erzählst, ich höre zu.</p><span class="eck"><span data-feld="gespraech_dauer"></span> · <span data-feld="gespraech_preis"></span></span></li>
+    <li class="schritt zeig" style="--i:1"><span class="nr"></span><h3>Sortieren</h3><p>Du bringst mit, was du hast: Ordner, App oder Schuhkarton. Ich zeige dir, was du da eigentlich besitzt.</p></li>
+    <li class="schritt zeig" style="--i:2"><span class="nr"></span><h3>Bündeln</h3><p>Dein Plan, schwarz auf weiß: was bleibt, was sich zu ändern lohnt, was fehlt. Mit Zahlen zum Nachrechnen.</p></li>
+    <li class="schritt zeig" style="--i:3"><span class="nr"></span><h3>Dranbleiben</h3><p>Einmal im Jahr schauen wir gemeinsam drauf. Und immer, wenn sich bei dir etwas ändert.</p></li>
+  </ol>
+</section>
+
+<!-- ========================================================== Rechner -->
+<section class="abschnitt" id="rechner" data-dunkel>
+  <div class="kopf2 zeig">
+    <p class="schild hell">Rechner</p>
+    <h2 class="gross">Was <em>Zeit</em> ausmacht.</h2>
+    <p class="lauf">Schieb die Regler. Die Kurve zeigt, was aus einer festen Sparrate werden kann – und was sich ändert, wenn du später anfängst.</p>
+  </div>
+  <div class="rechner zwei zeig">
+    <div class="regler">
+      <label><span class="kopf">Sparrate im Monat <output id="aRate"></output></span><input type="range" id="rRate" min="25" max="1000" step="25" value="150"></label>
+      <label><span class="kopf">Laufzeit <output id="aJahre"></output></span><input type="range" id="rJahre" min="5" max="45" step="1" value="30"></label>
+      <label><span class="kopf">Angenommene Rendite im Jahr <output id="aRendite"></output></span><input type="range" id="rRendite" min="0" max="7" step="0.5" value="5"></label>
+      <label class="schalter"><input type="checkbox" id="rKaufkraft"><span></span>In heutiger Kaufkraft zeigen (Annahme: 2&nbsp;% Inflation im Jahr)</label>
+    </div>
+    <div class="ergebnis">
+      <div class="summe">
+        <div class="haupt"><span id="tEnde">Am Ende</span><b id="eEnde">–</b></div>
+        <div><span id="tEin">Eingezahlt</span><b id="eEin">–</b></div>
+        <div class="ertrag"><span>Ertrag</span><b id="eErtrag">–</b></div>
+      </div>
+      <p class="beispiel">Rechenbeispiel, keine Prognose.</p>
+      <div class="kurve"><canvas id="kurve" role="img" aria-label="Verlauf von Einzahlungen und Guthaben"></canvas></div>
+      <p class="spaeter" id="spaeter" role="status"></p>
+    </div>
+  </div>
+  <p class="kleingedruckt">Rechenbeispiel mit gleichbleibender Rendite und Einzahlung am Monatsende. Echte Anlagen schwanken und können auch im Minus liegen. Kosten und Steuern sind nicht abgezogen. Das ist keine Prognose und keine Anlageberatung.</p>
+</section>
+
+<!-- =========================================================== Themen -->
+<section class="abschnitt" id="themen">
+  <div class="kopf2 zeig">
+    <p class="schild">Themen</p>
+    <h2 class="gross">Die sechs <em>Fäden</em> im Einzelnen.</h2>
+    <p class="lauf">Zu jedem gehört eine Frage, die du dir vermutlich schon gestellt hast. Bring sie einfach mit.</p>
+  </div>
+  <div class="karten" id="karten"></div>
+</section>
+
+<!-- ======================================================== Über mich -->
+<section class="abschnitt" id="ueber">
+  <div class="ueber zwei">
+    <figure class="portrait zeig"><canvas id="portrait" role="img" aria-label="Porträt"></canvas></figure>
+    <div class="zeig" style="--i:1">
+      <p class="schild">Über mich</p>
+      <h2 class="gross">Wer dir da <em>gegenübersitzt</em>.</h2>
+      <p class="lauf text" data-feld="ueber_text"></p>
+      <dl class="eckdaten">
+        <div><dt>Wo</dt><dd><span data-wenn="ort">vor Ort in <span data-feld="ort"></span> und per Video</span><span data-wenn-leer="ort">persönlich und per Video</span></dd></div>
+        <div data-wenn="taetig_fuer"><dt>Tätig für</dt><dd data-feld="taetig_fuer"></dd></div>
+        <div data-wenn="telefon"><dt>Erreichbar</dt><dd data-feld="telefon"></dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== Fragen -->
+<section class="abschnitt" id="fragen">
+  <div class="fragen zwei">
+    <div class="zeig"><p class="schild">Fragen</p><h2 class="gross">Fragen, die du stellen <em>solltest</em>.</h2></div>
+    <div class="zeig" style="--i:1">
+      <details open><summary>Was kostet mich das Erstgespräch?</summary><p>Es ist <span data-feld="gespraech_preis"></span>. Ob es danach weitergeht, entscheidest du.</p></details>
+      <details><summary>Wovon lebst du dann?</summary><p data-feld="antwort_verguetung"></p></details>
+      <details><summary>Bist du unabhängig?</summary><p data-feld="antwort_unabhaengig"></p></details>
+      <details><summary>Ich habe schon Verträge. Lohnt sich das trotzdem?</summary><p>Gerade dann. Beim Sortieren siehst du erst einmal, was du schon hast. Ob sich danach etwas ändert, entscheidest du.</p></details>
+      <details><summary>Muss ich etwas unterschreiben?</summary><p>Im Erstgespräch nichts. Und später nur, was du verstanden hast und selbst willst.</p></details>
+      <details><summary>Was passiert mit meinen Daten?</summary><p data-feld="antwort_daten"></p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================== Kontakt -->
+<section class="abschnitt" id="kontakt">
+  <div class="kontakt zeig">
+    <div>
+      <p class="schild">Kontakt</p>
+      <h2 class="gross">Lass uns <em>reden</em>.</h2>
+      <p class="lauf"><span data-feld="gespraech_dauer"></span> · <span data-feld="gespraech_preis"></span>. Danach weißt du, ob es passt.</p>
+      <div class="wege">
+        <a class="knopf dunkel" data-weg="telefon">Anrufen <i aria-hidden="true">↗</i></a>
+        <a class="knopf hell" data-weg="whatsapp" target="_blank" rel="noopener">WhatsApp <i aria-hidden="true">↗</i></a>
+        <a class="knopf hell" data-weg="email">E-Mail <i aria-hidden="true">↗</i></a>
+      </div>
+    </div>
+    <form class="formular" id="formular" novalidate>
+      <label>Dein Name<input type="text" name="name" autocomplete="name" required></label>
+      <label>So erreiche ich dich<input type="text" name="kontakt" placeholder="Telefon oder E-Mail" required></label>
+      <fieldset><legend>Worum geht es?</legend><div class="wahl" id="wahl"></div></fieldset>
+      <label>Magst du noch etwas dazusagen?<textarea name="text" rows="2"></textarea></label>
+      <div class="unten">
+        <small id="formhinweis" role="status">Öffnet dein E-Mail-Programm mit der fertigen Nachricht. Auf dieser Seite wird nichts gespeichert.</small>
+        <button class="knopf dunkel" type="submit" id="senden">Nachricht vorbereiten <i aria-hidden="true">↗</i></button>
+      </div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="fuss">
+  <span>© <span id="jahr"></span> <span data-feld="vorname"></span> <span data-feld="nachname"></span> · <span data-feld="titel"></span><span class="stand" id="entwurfhinweis"> · Entwurf, noch nicht veröffentlicht</span></span>
+  <nav aria-label="Rechtliches">
+    <button type="button" data-blatt="impressum">Impressum</button>
+    <button type="button" data-blatt="datenschutz">Datenschutz</button>
+    <button type="button" data-blatt="erstinfo">Erstinformation</button>
+  </nav>
+</footer>
+
+<!-- =============================== nur bei dir: Entwurfsknopf, Schublade -->
+<button class="entwurf" id="ausfuellen" type="button" title="Offene Angaben ausfüllen"><i aria-hidden="true"></i><span id="entwurfstext">Entwurf</span></button>
+
+<dialog class="schub" id="angaben" aria-labelledby="angabenTitel">
+  <div class="blattkopf"><h2 id="angabenTitel">Deine <em>Angaben</em></h2><button class="zu" type="button" data-zu aria-label="Schließen">×</button></div>
+  <div class="blattleib" id="angabenleib"></div>
+  <div class="schubfuss">
+    <button class="knopf dunkel" type="button" id="angabenSichern">Hier merken</button>
+    <button class="knopf still" type="button" id="angabenKopieren">Für Claude kopieren</button>
+    <button class="knopf still" type="button" id="angabenDatei">Als Datei sichern</button>
+    <output id="angabenMeldung"></output>
+  </div>
+</dialog>
+
+<!-- ============================================================ Blätter -->
+<dialog class="blatt" id="impressum" aria-labelledby="impTitel">
+  <div class="blattkopf"><h2 id="impTitel">Impressum</h2><button class="zu" type="button" data-zu aria-label="Schließen">×</button></div>
+  <div class="blattleib">
+    <p class="geruest">Hinweis für dich, Besucher sehen ihn nicht: Das ist ein Gerüst und keine Rechtsberatung. Bevor die Seite wirklich online geht, von deiner Gesellschaft oder einer Kanzlei prüfen lassen.</p>
+    <h3>Angaben nach § 5 DDG</h3>
+    <p><span data-feld="vorname"></span> <span data-feld="nachname"></span><br><span data-feld="titel"></span><br><span data-feld="strasse"></span><br><span data-feld="plz_ort"></span></p>
+    <h3>Kontakt</h3>
+    <p>Telefon: <span data-feld="telefon"></span><br>E-Mail: <span data-feld="email"></span></p>
+    <h3>Berufliche Angaben</h3>
+    <p>Tätig für: <span data-feld="taetig_fuer"></span><br>Erlaubnis und Status: <span data-feld="erlaubnis"></span><br>Registernummer: <span data-feld="register"></span> (einsehbar im Vermittlerregister, www.vermittlerregister.info)<br>Zuständige Kammer: <span data-feld="aufsicht"></span></p>
+  </div>
+</dialog>
+
+<dialog class="blatt" id="datenschutz" aria-labelledby="dsTitel">
+  <div class="blattkopf"><h2 id="dsTitel">Datenschutz</h2><button class="zu" type="button" data-zu aria-label="Schließen">×</button></div>
+  <div class="blattleib">
+    <p class="geruest">Hinweis für dich, Besucher sehen ihn nicht: Gerüst, keine Rechtsberatung. Es beschreibt, was diese Seite technisch wirklich tut. Vor dem Veröffentlichen prüfen lassen.</p>
+    <h3>Verantwortlich</h3>
+    <p><span data-feld="vorname"></span> <span data-feld="nachname"></span>, <span data-feld="strasse"></span>, <span data-feld="plz_ort"></span> · <span data-feld="email"></span></p>
+    <h3>Was diese Seite über dich speichert</h3>
+    <p>Nichts. Es gibt keine Cookies, keine Besuchsstatistik, keine eingebundenen fremden Dienste und keine Schriften von fremden Servern. Der Rechner läuft nur in deinem Browser.</p>
+    <h3>Kontaktformular</h3>
+    <p>Das Formular schickt nichts ab. Es öffnet dein eigenes E-Mail-Programm mit einem fertigen Text. Erst wenn du diese Mail selbst sendest, erreichen mich deine Angaben.</p>
+    <h3>Wenn du mich anrufst oder mir schreibst</h3>
+    <p>Dann nutze ich deine Angaben nur, um dir zu antworten und dich zu beraten (Art. 6 Abs. 1 Buchstabe b DSGVO). Ich bewahre sie so lange auf, wie es dafür und für gesetzliche Pflichten nötig ist. <span data-wenn="whatsapp">Schreibst du über WhatsApp, gelten zusätzlich die Bedingungen dieses Anbieters. </span><span data-wenn="termin_link">Die Terminbuchung läuft über einen fremden Anbieter mit eigenen Datenschutzhinweisen.</span></p>
+    <h3>Wo die Seite liegt</h3>
+    <p><span data-feld="hosting"></span>. Der Anbieter verarbeitet beim Aufruf technisch nötige Zugriffsdaten wie die IP-Adresse.</p>
+    <h3>Deine Rechte</h3>
+    <p>Du kannst Auskunft, Berichtigung, Löschung, Einschränkung und die Herausgabe deiner Daten verlangen, der Verarbeitung widersprechen und dich bei einer Datenschutz-Aufsichtsbehörde beschweren.</p>
+  </div>
+</dialog>
+
+<dialog class="blatt" id="erstinfo" aria-labelledby="eiTitel">
+  <div class="blattkopf"><h2 id="eiTitel">Erstinformation</h2><button class="zu" type="button" data-zu aria-label="Schließen">×</button></div>
+  <div class="blattleib">
+    <p class="geruest">Hinweis für dich, Besucher sehen ihn nicht: Gerüst der Pflichtinformation für Vermittler. Den verbindlichen Wortlaut bitte von deiner Gesellschaft übernehmen.</p>
+    <h3>Wer ich bin</h3>
+    <p><span data-feld="vorname"></span> <span data-feld="nachname"></span>, <span data-feld="strasse"></span>, <span data-feld="plz_ort"></span></p>
+    <h3>Status und Register</h3>
+    <p><span data-feld="erlaubnis"></span><br>Registernummer <span data-feld="register"></span>, einsehbar unter www.vermittlerregister.info<br>Zuständig: <span data-feld="aufsicht"></span></p>
+    <h3>Für wen ich tätig bin</h3>
+    <p data-feld="taetig_fuer"></p>
+    <h3>Wie ich bezahlt werde</h3>
+    <p data-feld="verguetung_pflicht"></p>
+    <h3>Wenn es Streit gibt</h3>
+    <p data-feld="schlichtung"></p>
+  </div>
+</dialog>
+
+<script src="kopf.js"></script>
+<script src="inhalt.js"></script>
+<script src="szene.js"></script>
+<script src="seite.js"></script>
+</body>
+</html>

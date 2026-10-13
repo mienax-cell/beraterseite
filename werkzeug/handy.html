@@ -1,0 +1,21 @@
+<!doctype html>
+<!-- handy.html — zeigt die Seite in drei handygroßen Rahmen nebeneinander.
+     Aufruf über die laufende Vorschau, die Anhänge kodiert:
+     /werkzeug/handy.html?a=%3Fp%3D0&b=%3Fp%3D0.47&c=%3Fp%3D1 -->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Handy-Probe</title>
+<style>body{margin:0;background:#2a2a2e;display:flex;gap:16px;padding:16px}iframe{border:0;width:390px;height:780px;border-radius:18px;background:#fff}</style>
+</head>
+<body>
+<script>
+  const q = new URLSearchParams(location.search);
+  for (const k of ['a', 'b', 'c']) {
+    const f = document.createElement('iframe');
+    f.src = '/' + (q.get(k) || '?p=0');
+    document.body.append(f);
+  }
+</script>
+</body>
+</html>
