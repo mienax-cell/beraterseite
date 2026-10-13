@@ -8,3 +8,6 @@ doku/
 
 # Prüfbilder und Prüfskripte
 werkzeug/pruef/
+
+# heruntergeladene Modelle (groß, lassen sich neu laden)
+werkzeug/modelle/

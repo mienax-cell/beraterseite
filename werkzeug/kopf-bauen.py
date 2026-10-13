@@ -10,9 +10,14 @@ Aus `quelle/foto.jpg` entstehen drei Dinge, alle in `kopf.js`:
 
 Die Seite liest daraus rund 200.000 Punkte und stellt sie im Raum auf.
 
-Warum kein fertiges Tiefen-Modell? Das wäre ein Download von rund 100 MB.
-Die Tiefe wird hier deshalb aus dem Umriss und ein paar Messpunkten gebaut
-(Augen, Nase, Mund, Kinn). Das trägt eine Drehung bis etwa 40 Grad.
+Die Tiefe kommt aus einem Tiefen-Modell (Depth Anything V2 Small, Apache-2.0,
+rund 100 MB), wenn die Datei werkzeug/modelle/tiefe-depth-anything-v2-small.onnx
+da ist. Es schätzt aus dem einen Foto, wie weit jeder Bildpunkt entfernt ist:
+Nase, Brille, Lippen, Kinn, Ohren und Haar bekommen ihre echte Wölbung.
+Geladen wird es von
+https://huggingface.co/onnx-community/depth-anything-v2-small (onnx/model.onnx).
+Fehlt die Datei, wird die Tiefe ersatzweise aus dem Umriss und ein paar
+Messpunkten gebaut (Augen, Nase, Mund, Kinn).
 
 Neues Foto? Die Messpunkte unten in MASSE anpassen (Bildpunkte im Foto),
 dann:   python werkzeug/kopf-bauen.py
@@ -33,6 +38,7 @@ WURZEL = Path(__file__).resolve().parent.parent
 FOTO = WURZEL / "quelle" / "foto.jpg"
 ZIEL = WURZEL / "kopf.js"
 PRUEF = WURZEL / "werkzeug" / "pruef"
+MODELL = WURZEL / "werkzeug" / "modelle" / "tiefe-depth-anything-v2-small.onnx"
 
 # ---------------------------------------------------------------- Messpunkte
 # Alles in Bildpunkten des Originalfotos (x nach rechts, y nach unten).
@@ -199,6 +205,31 @@ def tiefenkarte(bild, alpha, m):
     return z / (1.25 * W0)      # 0..1; 1.0 entspricht 1,25 halben Kopfbreiten
 
 
+def tiefe_aus_modell(bild, alpha):
+    """Tiefe aus dem Tiefen-Modell: 0 = Ohrenebene und Rand, 1 = Nasenspitze."""
+    import onnxruntime as ort
+    sitzung = ort.InferenceSession(str(MODELL), providers=["CPUExecutionProvider"])
+    G = 518                                              # Eingabegröße des Modells (Vielfaches von 14)
+    k = np.asarray(bild.resize((G, G), Image.BICUBIC)).astype(np.float32) / 255.0
+    k = (k - np.array([0.485, 0.456, 0.406], np.float32)) / np.array([0.229, 0.224, 0.225], np.float32)
+    roh = np.squeeze(sitzung.run(None, {sitzung.get_inputs()[0].name: k.transpose(2, 0, 1)[None]})[0])
+    d = np.asarray(Image.fromarray(roh.astype(np.float32)).resize(bild.size, Image.BICUBIC)).astype(float)
+
+    kopf = alpha > 0.6
+    fern = np.percentile(d[kopf], 2.0)                   # Rand von Haar und Ohren
+    nah = np.percentile(d[kopf], 99.8)                   # Nasenspitze, Brille
+    t = np.clip((d - fern) / max(nah - fern, 1e-6), 0, 1.04)
+    # Am Rand zieht das Modell die Türfarbe mit hinein: dort die Tiefe von innen her fortsetzen
+    innen = ndi.binary_erosion(kopf, iterations=5).astype(float)
+    gew = ndi.gaussian_filter(innen, 6)
+    fort = ndi.gaussian_filter(t * innen, 6) / np.maximum(gew, 1e-4)
+    t = np.where(innen > 0.5, t, np.where(gew > 1e-3, fort, t))
+    # Etwas glätten: Schmale, hohe Kanten (Brillenrand) reißen beim Drehen sonst Löcher in die Fläche dahinter.
+    t = ndi.gaussian_filter(t, 4.0)
+    RELIEF = 1.12                                        # Ohr bis Nasenspitze in halben Kopfbreiten
+    return np.clip(t, 0, None) * RELIEF * (alpha > 0.02) / 1.25
+
+
 def raender_entfaerben(rgb, alpha):
     """An der Kante mischt sich Türfarbe ins Haar. Dort wird die Farbe
     durch die der sicheren Nachbarn ersetzt."""
@@ -238,7 +269,12 @@ def main():
         np.abs(X - kx) / (m["kopfbreite_halb"] * 0.91), 0, 1) ** 2.3
     alpha = alpha * (1 - glatt(18, 100, Y - kiefer_y)) * (1 - glatt(a0, a1, Y))
 
-    z = tiefenkarte(bild, alpha_voll, m)
+    if MODELL.exists():
+        z = tiefe_aus_modell(bild, alpha_voll)
+        print("Tiefe: aus dem Tiefen-Modell")
+    else:
+        z = tiefenkarte(bild, alpha_voll, m)
+        print("Tiefe: ersatzweise aus Umriss und Messpunkten gebaut (Modell fehlt)")
     rgb = raender_entfaerben(np.asarray(bild).astype(float), alpha_voll)
 
     farbe = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8))

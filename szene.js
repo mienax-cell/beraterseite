@@ -180,7 +180,7 @@ void main(){
   float rest = mix(1.0, bleibt, smoothstep(0.70, 1.0, d));
 
   vec4 clip = uPV*vec4(p, 1.0);
-  float sz = uSpacing*mix(1.9, 1.0 + aRnd.y*1.5, d)*keep*rest;
+  float sz = uSpacing*mix(1.9 + 2.2*aCol.a, 1.0 + aRnd.y*1.5, d)*keep*rest;
   gl_Position = sz > 0.0005 ? clip : vec4(2.0, 2.0, 2.0, 1.0);
   gl_PointSize = uPx*sz/clip.w;
   vec3 gold = mix(vec3(1.0, 0.985, 0.96), vec3(1.0, 0.74, 0.30), step(0.45, aRnd.x));
@@ -538,7 +538,11 @@ void main(){
         pos[n * 3] = (xx - K.mitte[0]) / hw;
         pos[n * 3 + 1] = -(y - K.mitte[1]) / hw;
         pos[n * 3 + 2] = (Dt[i] / 255) * K.tiefe_massstab - 0.45;
-        col[n * 4] = F[i]; col[n * 4 + 1] = F[i + 1]; col[n * 4 + 2] = F[i + 2]; col[n * 4 + 3] = 255;
+        col[n * 4] = F[i]; col[n * 4 + 1] = F[i + 1]; col[n * 4 + 2] = F[i + 2];
+        // Wie steil die Fläche hier ist: steile Stellen bekommen größere Punkte, damit beim Drehen keine Lücken aufreißen.
+        const li = (py * W + Math.max(0, px - 3)) * 4, re = (py * W + Math.min(W - 1, px + 3)) * 4;
+        const ob = (Math.max(0, py - 3) * W + px) * 4, un = (Math.min(H - 1, py + 3) * W + px) * 4;
+        col[n * 4 + 3] = Math.min(255, (Math.abs(Dt[re] - Dt[li]) + Math.abs(Dt[un] - Dt[ob])) * 9);
         for (let k = 0; k < 4; k++) rnd[n * 4 + k] = zufall() * 256;
         n++;
       }
